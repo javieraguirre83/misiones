@@ -436,28 +436,6 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
         ajustesCargados = true;
     }
 
-    /** Settings are saved as soon as something changes (no save button). */
-    private void guardarAjustes() {
-        enviar("ajustes", d -> {
-            d.putString("modo", modo);
-            d.putInt("facil", Math.max(0, numero(pFacil, 50)));
-            d.putInt("media", Math.max(0, numero(pMedia, 33)));
-            d.putInt("dificil", Math.max(0, numero(pDificil, 17)));
-            d.putInt("limite", Math.max(0, numero(limiteTxt, 10)));
-            d.putBoolean("diaria", diaria);
-            d.putString("dificultadDiaria", difDiaria);
-            d.putBoolean("repartirTipos", repartir);
-        });
-    }
-
-    /** A number box that saves when it holds a valid number. */
-    private void campoAjuste(int x, int y, int w, String valor, Consumer<String> alCambiar) {
-        campo(x, y, w, valor, s -> {
-            alCambiar.accept(s);
-            if (numero(s, -1) >= 0) guardarAjustes();
-        });
-    }
-
     /** Settings are saved as soon as something changes (like Minecraft's own options). */
     private void guardarAjustes() {
         enviar("ajustes", d -> {

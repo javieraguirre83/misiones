@@ -66,6 +66,10 @@ if [ -f "$REPO/.github/scripts/clases.txt" ]; then
     [ -z "$C" ] && continue
     case "$C" in
       \#*) continue ;;
+      todo:*)
+        P=${C#todo:}
+        echo "### todo $P" >> "$REG/api.txt"
+        for j in $JARS; do unzip -l "$j" 2>/dev/null | awk '{print $4}' | grep -E "^$P" ; done | sort -u >> "$REG/api.txt" ;;
       ls:*)
         P=${C#ls:}
         echo "### ls $P" >> "$REG/api.txt"

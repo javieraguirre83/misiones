@@ -142,13 +142,13 @@ public final class Comandos {
     }
 
     /** "agregar conseguir <cantidad> <objeto> [dificultad]" */
-    private static <T> LiteralArgumentBuilder<CommandSourceStack> conCosa(String nombre, Tipo tipo, ResourceKey<? extends Registry<T>> registro) {
+    private static <T> LiteralArgumentBuilder<CommandSourceStack> conCosa(String nombre, Tipo tipo, ResourceKey<Registry<T>> registro) {
         return Commands.literal(nombre).then(Commands.argument("cantidad", IntegerArgumentType.integer(1, 100000))
                 .then(conDificultad(Commands.argument("cosa", ResourceOrTagKeyArgument.resourceOrTagKey(registro)),
                         (ctx, dif) -> nueva(ctx, tipo, dif, cosa(ctx, "cosa", registro), IntegerArgumentType.getInteger(ctx, "cantidad")))));
     }
 
-    private static <T> String cosa(CommandContext<CommandSourceStack> ctx, String arg, ResourceKey<? extends Registry<T>> registro) throws CommandSyntaxException {
+    private static <T> String cosa(CommandContext<CommandSourceStack> ctx, String arg, ResourceKey<Registry<T>> registro) throws CommandSyntaxException {
         return ResourceOrTagKeyArgument.getResourceOrTagKey(ctx, arg, registro, INVALIDO).asPrintable();
     }
 

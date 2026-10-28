@@ -58,7 +58,7 @@ public final class Progreso {
 
     public static boolean coincideMob(String objetivo, Entity entity) {
         String o = normalizar(objetivo);
-        if (o.startsWith("#")) return entity.getType().is(TagKey.create(Registries.ENTITY_TYPE, id(o.substring(1))));
+        if (o.startsWith("#")) return BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(entity.getType()).is(TagKey.create(Registries.ENTITY_TYPE, id(o.substring(1))));
         return o.equals(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString());
     }
 
@@ -85,7 +85,7 @@ public final class Progreso {
                     return level.structureManager().getStructureWithPieceAt(pos, tag).isValid();
                 }
                 ResourceKey<Structure> key = ResourceKey.create(Registries.STRUCTURE, id(e));
-                return level.structureManager().getStructureWithPieceAt(pos, key).isValid();
+                return level.structureManager().getStructureWithPieceAt(pos, (Holder<Structure> h) -> h.is(key)).isValid();
             }
             if (o.startsWith("altura:")) {
                 String a = o.substring(7).replace(" ", "");
@@ -205,7 +205,7 @@ public final class Progreso {
 
     /** Day number of the world (for SOBREVIVIR). */
     public static long dia(Level level) {
-        return level.getDayTime() / 24000L;
+        return level.getOverworldClockTime() / 24000L;
     }
 
     /** Recalculates the missions that depend on the current state (inventory, place, level, days). */

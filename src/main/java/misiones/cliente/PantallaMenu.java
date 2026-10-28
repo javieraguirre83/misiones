@@ -436,25 +436,9 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
         ajustesCargados = true;
     }
 
-    private void initAjustes() {
-        if (!ajustesCargados) cargarAjustes();
-        int x = izq + 150, w = Math.min(160, der - x);
-        addRenderableWidget(CycleButton.builder((String m) -> Component.translatable("misiones.modo." + m), modo)
-                .withValues(List.of("balanceado", "azar")).displayOnlyValue()
-                .create(x, fila(0), w, 20, Component.translatable("misiones.menu.modo"), (b, v) -> modo = v));
-        campo(x, fila(1), 40, pFacil, s -> pFacil = s);
-        campo(x + 44, fila(1), 40, pMedia, s -> pMedia = s);
-        campo(x + 88, fila(1), 40, pDificil, s -> pDificil = s);
-        campo(x, fila(2), 50, limiteTxt, s -> limiteTxt = s);
-        addRenderableWidget(CycleButton.onOffBuilder(diaria).displayOnlyValue()
-                .create(x, fila(3), w, 20, Component.translatable("misiones.menu.diaria"), (b, v) -> diaria = v));
-        addRenderableWidget(CycleButton.builder((String d) -> d.equals("azar") ? Component.translatable("misiones.modo.azar")
-                        : Component.translatable("misiones.dificultad." + d), difDiaria)
-                .withValues(List.of("azar", "facil", "media", "dificil")).displayOnlyValue()
-                .create(x, fila(4), w, 20, Component.translatable("misiones.menu.dificultad_diaria"), (b, v) -> difDiaria = v));
-        addRenderableWidget(CycleButton.onOffBuilder(repartir).displayOnlyValue()
-                .create(x, fila(5), w, 20, Component.translatable("misiones.menu.repartir"), (b, v) -> repartir = v));
-        boton("misiones.menu.guardar", x, fila(6) + 2, w, b -> enviar("ajustes", d -> {
+    /** Settings are saved as soon as something changes (no save button). */
+    private void guardarAjustes() {
+        enviar("ajustes", d -> {
             d.putString("modo", modo);
             d.putInt("facil", Math.max(0, numero(pFacil, 50)));
             d.putInt("media", Math.max(0, numero(pMedia, 33)));
@@ -463,7 +447,35 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
             d.putBoolean("diaria", diaria);
             d.putString("dificultadDiaria", difDiaria);
             d.putBoolean("repartirTipos", repartir);
-        }));
+        });
+    }
+
+    /** A number box that saves when it holds a valid number. */
+    private void campoAjuste(int x, int y, int w, String valor, Consumer<String> alCambiar) {
+        campo(x, y, w, valor, s -> {
+            alCambiar.accept(s);
+            if (numero(s, -1) >= 0) guardarAjustes();
+        });
+    }
+
+    private void initAjustes() {
+        if (!ajustesCargados) cargarAjustes();
+        int x = izq + 150, w = Math.min(160, der - x);
+        addRenderableWidget(CycleButton.builder((String m) -> Component.translatable("misiones.modo." + m), modo)
+                .withValues(List.of("balanceado", "azar")).displayOnlyValue()
+                .create(x, fila(0), w, 20, Component.translatable("misiones.menu.modo"), (b, v) -> { modo = v; guardarAjustes(); }));
+        campoAjuste(x, fila(1), 40, pFacil, s -> pFacil = s);
+        campoAjuste(x + 44, fila(1), 40, pMedia, s -> pMedia = s);
+        campoAjuste(x + 88, fila(1), 40, pDificil, s -> pDificil = s);
+        campoAjuste(x, fila(2), 50, limiteTxt, s -> limiteTxt = s);
+        addRenderableWidget(CycleButton.onOffBuilder(diaria).displayOnlyValue()
+                .create(x, fila(3), w, 20, Component.translatable("misiones.menu.diaria"), (b, v) -> { diaria = v; guardarAjustes(); }));
+        addRenderableWidget(CycleButton.builder((String d) -> d.equals("azar") ? Component.translatable("misiones.modo.azar")
+                        : Component.translatable("misiones.dificultad." + d), difDiaria)
+                .withValues(List.of("azar", "facil", "media", "dificil")).displayOnlyValue()
+                .create(x, fila(4), w, 20, Component.translatable("misiones.menu.dificultad_diaria"), (b, v) -> { difDiaria = v; guardarAjustes(); }));
+        addRenderableWidget(CycleButton.onOffBuilder(repartir).displayOnlyValue()
+                .create(x, fila(5), w, 20, Component.translatable("misiones.menu.repartir"), (b, v) -> { repartir = v; guardarAjustes(); }));
         int w2 = (der - izq) / 2;
         boton("misiones.menu.abrir_carpeta", izq, height - 56, w2 - 2, b -> abrirCarpeta());
         boton("misiones.menu.recargar", izq + w2, height - 56, w2 - 2, b -> enviar("recargar", d -> { }));
@@ -485,7 +497,6 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
                 "misiones.menu.dificultad_diaria", "misiones.menu.repartir"};
         for (int i = 0; i < etiquetas.length; i++) g.text(font, Component.translatable(etiquetas[i]), izq, fila(i) + 6, 0xFFFFFFFF);
         g.text(font, Component.translatable("misiones.menu.limite_ayuda").withStyle(ChatFormatting.GRAY), izq + 210, fila(2) + 6, -1);
-        g.text(font, Component.translatable("misiones.menu.catalogo", DatosCliente.catalogo).withStyle(ChatFormatting.GRAY), izq, height - 68, -1);
     }
 
     // ---------- drawing and input ----------

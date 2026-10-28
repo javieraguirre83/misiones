@@ -290,7 +290,7 @@
   {"id": "encantar_fortuna", "tipo": "encantar", "dificultad": "media", "objetivos": [{"objetivo": "#minecraft:pickaxes[fortune=1]", "cantidad": 1}]},
   {"id": "encantar_botin", "tipo": "encantar", "dificultad": "media", "objetivos": [{"objetivo": "#minecraft:swords[looting=1]", "cantidad": 1}]},
   {"id": "encantar_caida", "tipo": "encantar", "dificultad": "media", "objetivos": [{"objetivo": "#minecraft:foot_armor[feather_falling=2]", "cantidad": 1}]},
-  {"id": "encantar_irrompible", "tipo": "encantar", "dificultad": "media", "objetivos": [{"objetivo": "minecraft:*[unbreaking=2]", "cantidad": 3}]},
+  {"id": "encantar_irrompible", "tipo": "encantar", "dificultad": "media", "objetivos": [{"objetivo": "*[unbreaking=2]", "cantidad": 3}]},
   {"id": "encantar_30", "tipo": "encantar", "dificultad": "dificil", "objetivos": [{"objetivo": "*", "cantidad": 30}]},
   {"id": "encantar_filo_4", "tipo": "encantar", "dificultad": "dificil", "objetivos": [{"objetivo": "#minecraft:swords[sharpness=4]", "cantidad": 1}]},
   {"id": "encantar_eficiencia_4", "tipo": "encantar", "dificultad": "dificil", "objetivos": [{"objetivo": "#minecraft:pickaxes[efficiency=4]", "cantidad": 1}]},

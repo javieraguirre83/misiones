@@ -25,7 +25,25 @@ public final class DatosCliente {
     /** Goes up every time new data arrives, so screens know when to rebuild. */
     public static int version = 0;
 
+    public static List<String> estructuras = new ArrayList<>();
+    public static List<String> logros = new ArrayList<>();
+    public static List<String> dimensiones = new ArrayList<>(List.of("minecraft:overworld", "minecraft:the_nether", "minecraft:the_end"));
+
+    private static List<String> leerLista(CompoundTag c) {
+        List<String> r = new ArrayList<>();
+        int n = c.getIntOr("n", 0);
+        for (int i = 0; i < n; i++) r.add(c.getStringOr(String.valueOf(i), ""));
+        return r;
+    }
+
     public static void recibir(Paquete p) {
+        if (p.accion().equals("listas")) {
+            estructuras = leerLista(p.datos().getCompoundOrEmpty("estructuras"));
+            logros = leerLista(p.datos().getCompoundOrEmpty("logros"));
+            List<String> dims = leerLista(p.datos().getCompoundOrEmpty("dimensiones"));
+            if (!dims.isEmpty()) dimensiones = dims;
+            return;
+        }
         if (!p.accion().equals("estado")) return;
         CompoundTag d = p.datos();
         List<Mision> lista = new ArrayList<>();

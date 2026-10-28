@@ -4,7 +4,7 @@ license="All Rights Reserved"
 
 [[mods]]
 modId="misiones"
-version="2.1.0"
+version="2.2.0"
 displayName="Misiones"
 authors="javieraguirre83"
 description='''Generador de misiones: dale un objetivo a cada partida. / Mission generator: give every playthrough a goal.'''

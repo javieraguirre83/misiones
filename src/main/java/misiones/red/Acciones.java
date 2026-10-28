@@ -13,6 +13,7 @@ import misiones.modelo.Objetivo;
 import misiones.modelo.Recompensa;
 import misiones.modelo.Tipo;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -141,6 +142,10 @@ public final class Acciones {
                 aviso = "misiones.recargadas";
                 args = new String[]{String.valueOf(Catalogo.cargar())};
             }
+            case "listas" -> {
+                enviarListas(player);
+                return;
+            }
             default -> { }
         }
         if (!p.accion().equals("pedir")) Progreso.revisarEstado(player);
@@ -194,6 +199,28 @@ public final class Acciones {
         d.putInt("nargs", args.length);
         for (int i = 0; i < args.length; i++) d.putString("arg" + i, args[i]);
         Red.alJugador(player, new Paquete(d));
+    }
+
+    /** Things only the server knows: structures, advancements and dimensions (for the pickers). */
+    private static void enviarListas(ServerPlayer player) {
+        CompoundTag d = new CompoundTag();
+        d.putString("accion", "listas");
+        List<String> estructuras = player.level().registryAccess().lookupOrThrow(Registries.STRUCTURE).listElementIds()
+                .map(k -> k.identifier().toString()).sorted().toList();
+        List<String> logros = player.level().getServer().getAdvancements().getAllAdvancements().stream()
+                .filter(h -> h.value().display().isPresent()).map(h -> h.id().toString()).sorted().toList();
+        List<String> dimensiones = player.level().getServer().levelKeys().stream().map(k -> k.identifier().toString()).sorted().toList();
+        poner(d, "estructuras", estructuras);
+        poner(d, "logros", logros);
+        poner(d, "dimensiones", dimensiones);
+        Red.alJugador(player, new Paquete(d));
+    }
+
+    private static void poner(CompoundTag d, String clave, List<String> valores) {
+        CompoundTag c = new CompoundTag();
+        c.putInt("n", valores.size());
+        for (int i = 0; i < valores.size(); i++) c.putString(String.valueOf(i), valores.get(i));
+        d.put(clave, c);
     }
 
     private Acciones() {}

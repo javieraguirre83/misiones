@@ -10,13 +10,33 @@ Generador de misiones para darle un **objetivo** a cada partida: desde "consigue
 
 ## ⬇️ Descargar
 
-**[Descargar el mod (.jar)](https://github.com/javieraguirre83/misiones/releases/download/ultima/Misiones-2.1.0-forge-26.2.jar)**
+**[Descargar el mod (.jar)](https://github.com/javieraguirre83/misiones/releases/download/ultima/Misiones-2.2.0-forge-26.2.jar)**
 
 1. Descarga el archivo `.jar` (si tenías la versión 1, borra el `.jar` viejo de la carpeta `mods`).
 2. Presiona **Windows + R**, escribe `%appdata%\.minecraft\mods` y dale Enter.
 3. Pega ahí el `.jar` y abre Minecraft con el perfil de **Forge 26.2**.
 
 Los textos salen en **español o inglés** según el idioma de tu Minecraft. El comando funciona como `/misiones` o `/missions`. **No necesitas trucos activados.**
+
+---
+
+## ⌨️ Teclas y pantallas
+
+| Tecla | Qué abre |
+|---|---|
+| **M** | **Menú de misiones**: todo se hace con clics, sin escribir comandos |
+| **J** | **Lista de misiones**: tus misiones con su avance (solo para ver) |
+
+Las teclas se cambian en **Opciones → Controles → Asignación de teclas → Misiones**.
+
+El menú (M) tiene 5 pestañas:
+- **Mis misiones:** haz clic en una para elegirla y usa los botones *Completar*, *Borrar*, *Premio…*, *Encantamiento…* o *Pedir adorno*. También puedes *Quitar cumplidas* o *Borrar todas*.
+- **Generar:** cuántas en total (según el modo), o cuántas fáciles, medias y difíciles.
+- **Agregar:** elige el tipo, luego *Elegir…* abre una lista con buscador (objetos, bloques, criaturas, pociones, estructuras, biomas, logros…). Pon la cantidad y la dificultad y dale *Agregar misión*.
+- **Cadenas:** elige una cadena, mira sus pasos y dale *Empezar esta cadena*.
+- **Ajustes:** modo, porcentajes, límite, misión diaria, repartir tipos. Abajo están **Abrir carpeta del catálogo** (para editar `misiones.json`) y **Recargar catálogo**.
+
+Los comandos de abajo siguen funcionando igual, por si los prefieres.
 
 ---
 

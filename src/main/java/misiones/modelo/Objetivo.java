@@ -13,6 +13,8 @@ public class Objetivo {
     public String objetivo;
     public int cantidad;
     public int progreso = 0;
+    /** Starting value of a statistic (VIAJAR), -1 = not taken yet. */
+    public int base = -1;
 
     public Objetivo(String objetivo, int cantidad) {
         this.objetivo = objetivo == null ? "" : objetivo;
@@ -26,6 +28,7 @@ public class Objetivo {
     public Objetivo copia() {
         Objetivo o = new Objetivo(objetivo, cantidad);
         o.progreso = progreso;
+        o.base = base;
         return o;
     }
 
@@ -34,12 +37,14 @@ public class Objetivo {
         tag.putString("objetivo", objetivo);
         tag.putInt("cantidad", cantidad);
         tag.putInt("progreso", progreso);
+        tag.putInt("base", base);
         return tag;
     }
 
     public static Objetivo cargar(CompoundTag tag) {
         Objetivo o = new Objetivo(tag.getStringOr("objetivo", ""), tag.getIntOr("cantidad", 1));
         o.progreso = tag.getIntOr("progreso", 0);
+        o.base = tag.getIntOr("base", -1);
         return o;
     }
 

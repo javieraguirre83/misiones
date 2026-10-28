@@ -5,6 +5,8 @@ import misiones.modelo.Objetivo;
 import misiones.modelo.Recompensa;
 import misiones.modelo.Tipo;
 import net.minecraft.ChatFormatting;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,38 +30,19 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Predicate;
 
 /** Checks progress, completes missions, gives rewards and builds the texts. */
 public final class Progreso {
 
-    // ---------- matching helpers ----------
+    // ---------- helpers ----------
 
     public static String normalizar(String id) {
-        if (id == null) return "";
-        String s = id.trim().toLowerCase(Locale.ROOT);
-        if (s.startsWith("#")) {
-            String t = s.substring(1);
-            return "#" + (t.contains(":") ? t : "minecraft:" + t);
-        }
-        return s.contains(":") ? s : "minecraft:" + s;
+        return Cosas.normalizar(id);
     }
 
     private static Identifier id(String texto) {
-        Identifier i = Identifier.tryParse(texto);
-        return i == null ? Identifier.withDefaultNamespace("air") : i;
-    }
-
-    public static boolean coincideObjeto(String objetivo, ItemStack stack) {
-        if (stack.isEmpty()) return false;
-        String o = normalizar(objetivo);
-        if (o.startsWith("#")) return stack.is(TagKey.create(Registries.ITEM, id(o.substring(1))));
-        return o.equals(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
-    }
-
-    public static boolean coincideMob(String objetivo, Entity entity) {
-        String o = normalizar(objetivo);
-        if (o.startsWith("#")) return BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(entity.getType()).is(TagKey.create(Registries.ENTITY_TYPE, id(o.substring(1))));
-        return o.equals(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString());
+        return Cosas.id(texto);
     }
 
     /** EXPLORAR: dimension:, estructura:, bioma:, altura: */
@@ -101,24 +84,8 @@ public final class Progreso {
 
     // ---------- names for display ----------
 
-    public static Component nombreObjeto(String objetivo) {
-        String o = normalizar(objetivo);
-        if (o.startsWith("#")) return Component.literal("#" + id(o.substring(1)).getPath());
-        Item item = BuiltInRegistries.ITEM.getValue(id(o));
-        return new ItemStack(item).getHoverName();
-    }
-
-    public static Component nombreMob(String objetivo) {
-        String o = normalizar(objetivo);
-        if (o.startsWith("#")) return Component.literal("#" + id(o.substring(1)).getPath());
-        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getValue(id(o));
-        return type.getDescription();
-    }
-
     private static String bonito(String id) {
-        String path = id.contains(":") ? id.substring(id.indexOf(':') + 1) : id;
-        path = path.replace("#", "").replace('_', ' ');
-        return path.isEmpty() ? path : Character.toUpperCase(path.charAt(0)) + path.substring(1);
+        return Cosas.bonito(id);
     }
 
     public static Component nombreLugar(String objetivo) {
@@ -162,9 +129,20 @@ public final class Progreso {
         for (Objetivo o : m.objetivos) {
             if (!primero) texto.append(", ");
             primero = false;
+            String cuenta = o.progreso + "/" + o.cantidad + " ";
             MutableComponent parte = switch (m.tipo) {
-                case CONSEGUIR, COFRE, FABRICAR -> Component.literal(o.progreso + "/" + o.cantidad + " ").append(nombreObjeto(o.objetivo));
-                case MATAR -> Component.literal(o.progreso + "/" + o.cantidad + " ").append(nombreMob(o.objetivo));
+                case CONSEGUIR, COFRE, FABRICAR, PESCAR, COMER, FUNDIR, ENCANTAR ->
+                        Component.literal(cuenta).append(Cosas.nombreObjeto(o.objetivo));
+                case EQUIPAR -> (o.cantidad > 1 ? Component.literal(cuenta) : Component.literal(o.cumplido() ? "✔ " : "✘ "))
+                        .append(Cosas.nombreObjeto(o.objetivo));
+                case MINAR, COSECHAR -> Component.literal(cuenta).append(Cosas.nombreBloque(o.objetivo));
+                case MATAR, CRIAR, DOMESTICAR -> Component.literal(cuenta).append(Cosas.nombreMob(o.objetivo));
+                case COMERCIAR -> Component.literal(cuenta).append(Cosas.leer(o.objetivo).cualquiera()
+                        ? Component.translatable("misiones.cualquier.trato")
+                        : Cosas.esMob(o.objetivo) ? Cosas.nombreMob(o.objetivo) : Cosas.nombreObjeto(o.objetivo));
+                case POCIONES -> Component.literal(cuenta).append(Cosas.nombrePocion(o.objetivo));
+                case VIAJAR -> Component.translatable("misiones.viajar." + Viajes.forma(o.objetivo), o.progreso, o.cantidad);
+                case LOGROS -> Cosas.nombreLogro(o.objetivo).copy();
                 case EXPLORAR -> nombreLugar(o.objetivo).copy();
                 case SOBREVIVIR -> Component.translatable("misiones.dias", o.progreso, o.cantidad);
                 case NIVEL -> Component.translatable("misiones.nivel", o.progreso, o.cantidad);
@@ -179,6 +157,8 @@ public final class Progreso {
 
     public static MutableComponent linea(int numero, Mision m) {
         MutableComponent linea = Component.literal("#" + numero + " ").withStyle(ChatFormatting.GOLD);
+        if (m.diaria) linea.append(Component.literal("📅 ").withStyle(ChatFormatting.AQUA));
+        if (!m.cadena.isEmpty()) linea.append(Component.literal("⛓" + m.cadena + " ").withStyle(ChatFormatting.LIGHT_PURPLE));
         linea.append(Component.literal("[").append(Component.translatable(m.dificultad.clave())).append("] ").withStyle(m.dificultad.color));
         MutableComponent desc = descripcion(m);
         if (m.completada) desc = Component.literal("✔ ").withStyle(ChatFormatting.GREEN).append(desc.withStyle(ChatFormatting.STRIKETHROUGH, ChatFormatting.DARK_GRAY));
@@ -196,19 +176,26 @@ public final class Progreso {
             if (!primero) texto.append(", ");
             primero = false;
             if (r.esXp()) texto.append(Component.translatable("misiones.recompensa.xp", r.cantidad));
-            else texto.append(Component.literal(r.cantidad + " ")).append(nombreObjeto(r.objeto));
+            else texto.append(Component.literal(r.cantidad + " ")).append(Cosas.nombreObjeto(r.objeto));
         }
         return texto;
     }
 
     // ---------- updating ----------
 
-    /** Day number of the world (for SOBREVIVIR). */
+    /** Day number of the world (for SOBREVIVIR and the daily mission). */
     public static long dia(Level level) {
         return level.getOverworldClockTime() / 24000L;
     }
 
-    /** Recalculates the missions that depend on the current state (inventory, place, level, days). */
+    private static boolean poner(Objetivo o, int nuevo) {
+        nuevo = Math.max(0, Math.min(nuevo, o.cantidad));
+        if (nuevo == o.progreso) return false;
+        o.progreso = nuevo;
+        return true;
+    }
+
+    /** Recalculates the missions that depend on the current state (inventory, armor, place, level, days, distance, advancements). */
     public static void revisarEstado(ServerPlayer player) {
         List<Mision> lista = Datos.lista(player);
         boolean cambio = false;
@@ -220,28 +207,36 @@ public final class Progreso {
                         int total = 0;
                         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                             ItemStack s = player.getInventory().getItem(i);
-                            if (coincideObjeto(o.objetivo, s)) total += s.getCount();
+                            if (Cosas.objeto(o.objetivo, s)) total += s.getCount();
                         }
-                        int nuevo = Math.min(total, o.cantidad);
-                        if (nuevo != o.progreso) { o.progreso = nuevo; cambio = true; }
+                        cambio |= poner(o, total);
                     }
+                }
+                case EQUIPAR -> {
+                    for (Objetivo o : m.objetivos) cambio |= poner(o, equipado(player, o.objetivo));
                 }
                 case EXPLORAR -> {
                     for (Objetivo o : m.objetivos) {
-                        if (!o.cumplido() && lugarCumplido(o.objetivo, player)) { o.progreso = o.cantidad; cambio = true; }
+                        if (!o.cumplido() && lugarCumplido(o.objetivo, player)) cambio |= poner(o, o.cantidad);
                     }
                 }
                 case NIVEL -> {
-                    for (Objetivo o : m.objetivos) {
-                        int nuevo = Math.min(player.experienceLevel, o.cantidad);
-                        if (nuevo != o.progreso) { o.progreso = nuevo; cambio = true; }
-                    }
+                    for (Objetivo o : m.objetivos) cambio |= poner(o, player.experienceLevel);
                 }
                 case SOBREVIVIR -> {
                     if (m.diaInicio < 0) { m.diaInicio = dia(player.level()); cambio = true; }
+                    for (Objetivo o : m.objetivos) cambio |= poner(o, (int) (dia(player.level()) - m.diaInicio));
+                }
+                case VIAJAR -> {
                     for (Objetivo o : m.objetivos) {
-                        int nuevo = (int) Math.min(dia(player.level()) - m.diaInicio, o.cantidad);
-                        if (nuevo != o.progreso) { o.progreso = Math.max(0, nuevo); cambio = true; }
+                        int valor = Viajes.valor(player, o.objetivo);
+                        if (o.base < 0) { o.base = valor; cambio = true; }
+                        cambio |= poner(o, Viajes.enBloques(o.objetivo, valor - o.base));
+                    }
+                }
+                case LOGROS -> {
+                    for (Objetivo o : m.objetivos) {
+                        if (!o.cumplido() && logroHecho(player, o.objetivo)) cambio |= poner(o, o.cantidad);
                     }
                 }
                 default -> { }
@@ -253,18 +248,57 @@ public final class Progreso {
         }
     }
 
-    /** Adds progress to counting missions (kill / craft). */
-    public static void sumar(ServerPlayer player, Tipo tipo, java.util.function.Predicate<String> coincide, int cuanto) {
+    /** EQUIPAR: armor counts only when worn; weapons, tools and other things count in the inventory. */
+    private static int equipado(ServerPlayer player, String objetivo) {
+        int total = 0;
+        for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+            ItemStack s = player.getItemBySlot(slot);
+            if (!s.isEmpty() && esArmadura(player, s) && Cosas.objeto(objetivo, s)) total += s.getCount();
+        }
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack s = player.getInventory().getItem(i);
+            if (!s.isEmpty() && !esArmadura(player, s) && Cosas.objeto(objetivo, s)) total += s.getCount();
+        }
+        ItemStack mano = player.getOffhandItem();
+        if (!mano.isEmpty() && !esArmadura(player, mano) && Cosas.objeto(objetivo, mano)) {
+            // The offhand may or may not be part of the inventory list: avoid counting it twice
+            boolean yaContado = false;
+            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                if (player.getInventory().getItem(i) == mano) { yaContado = true; break; }
+            }
+            if (!yaContado) total += mano.getCount();
+        }
+        return total;
+    }
+
+    private static boolean esArmadura(ServerPlayer player, ItemStack s) {
+        return player.getEquipmentSlotForItem(s).getType() == EquipmentSlot.Type.HUMANOID_ARMOR;
+    }
+
+    public static boolean logroHecho(ServerPlayer player, String objetivo) {
+        Identifier i = Identifier.tryParse(Cosas.normalizar(objetivo));
+        if (i == null) return false;
+        AdvancementHolder h = player.level().getServer().getAdvancements().get(i);
+        return h != null && player.getAdvancements().getOrStartProgress(h).isDone();
+    }
+
+    /** Adds progress to counting missions (kill, craft, mine, fish...). */
+    public static void sumar(ServerPlayer player, Tipo tipo, Predicate<String> coincide, int cuanto) {
+        if (cuanto <= 0) return;
         List<Mision> lista = Datos.lista(player);
         boolean cambio = false;
         for (Mision m : lista) {
             if (m.completada || m.tipo != tipo) continue;
+            boolean avanzo = false;
             for (Objetivo o : m.objetivos) {
                 if (!o.cumplido() && coincide.test(o.objetivo)) {
                     o.progreso = Math.min(o.cantidad, o.progreso + cuanto);
-                    cambio = true;
-                    player.sendSystemMessage(descripcion(m).withStyle(ChatFormatting.YELLOW), true);
+                    avanzo = true;
                 }
+            }
+            if (avanzo) {
+                cambio = true;
+                player.sendSystemMessage(descripcion(m).withStyle(ChatFormatting.YELLOW), true);
             }
         }
         if (cambio) {
@@ -282,7 +316,7 @@ public final class Progreso {
             for (Objetivo o : m.objetivos) {
                 int total = 0;
                 for (ItemStack s : contenido) {
-                    if (coincideObjeto(o.objetivo, s)) total += s.getCount();
+                    if (Cosas.objeto(o.objetivo, s)) total += s.getCount();
                 }
                 int nuevo = Math.min(total, o.cantidad);
                 if (nuevo > o.progreso) { o.progreso = nuevo; cambio = true; }
@@ -312,17 +346,19 @@ public final class Progreso {
         for (int i = 0; i < lista.size(); i++) {
             Mision m = lista.get(i);
             if (!m.completada && m.tipo != Tipo.LIBRE && m.todosCumplidos()) {
-                completar(player, m, i + 1);
+                completar(player, lista, m, i + 1);
             }
         }
     }
 
-    public static void completar(ServerPlayer player, Mision m, int numero) {
+    /** Completes a mission: message, sound, rewards, next mission of the chain and missions waiting for a place. */
+    public static void completar(ServerPlayer player, List<Mision> lista, Mision m, int numero) {
         m.completada = true;
         player.sendSystemMessage(Component.translatable("misiones.completada", numero).withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
         player.sendSystemMessage(descripcion(m).withStyle(ChatFormatting.GRAY));
         player.level().playSound(null, player.blockPosition(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 1.0F, 1.0F);
         darRecompensas(player, m);
+        Gestor.alCompletar(player, lista, m);
     }
 
     private static void darRecompensas(ServerPlayer player, Mision m) {

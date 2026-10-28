@@ -17,6 +17,7 @@ public final class Misiones {
 
     public Misiones(FMLJavaModLoadingContext context) {
         FMLCommonSetupEvent.getBus(context.getModBusGroup()).addListener(e -> {
+            Ajustes.cargar();
             int n = Catalogo.cargar();
             LOGGER.info("Misiones: {} misiones en el catalogo", n);
         });

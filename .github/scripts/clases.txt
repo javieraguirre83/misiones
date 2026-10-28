@@ -58,3 +58,10 @@ net.minecraft.core.HolderSet
 net.minecraft.core.Registry
 net.minecraft.world.level.Level
 net.minecraft.world.level.storage.LevelData
+net.minecraft.commands.arguments.IdentifierArgument
+net.minecraft.world.item.equipment.trim.ArmorTrim
+net.minecraft.world.level.block.state.properties.IntegerProperty
+net.minecraft.world.level.block.state.properties.Property
+net.minecraft.world.item.trading.MerchantOffer
+net.minecraftforge.eventbus.api.bus.CancellableEventBus
+net.minecraftforge.eventbus.api.bus.EventBus

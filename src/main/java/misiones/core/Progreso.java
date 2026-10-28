@@ -120,7 +120,12 @@ public final class Progreso {
 
     /** "Consigue: 67/100 Manzana, 3/5 Hierro" (or the custom text). */
     public static MutableComponent descripcion(Mision m) {
-        MutableComponent texto = Component.literal(m.tipo.icono + " ");
+        return descripcion(m, true);
+    }
+
+    /** Same text, optionally without the emoji at the start (the screens draw an item icon instead). */
+    public static MutableComponent descripcion(Mision m, boolean icono) {
+        MutableComponent texto = icono ? Component.literal(m.tipo.icono + " ") : Component.empty();
         if (!m.texto.isEmpty() && m.tipo == Tipo.LIBRE) {
             return texto.append(Component.literal(m.texto));
         }

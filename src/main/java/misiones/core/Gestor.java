@@ -105,5 +105,33 @@ public final class Gestor {
         Datos.guardar(player, lista);
     }
 
+    /**
+     * Generates random missions: easy/medium/hard counts, cut down to the free places (hardest removed first).
+     * Returns {generated, asked}; generated = -1 when the limit is already full.
+     */
+    public static int[] generar(ServerPlayer player, int[] cuantas) {
+        List<Mision> lista = Datos.lista(player);
+        int pedidas = cuantas[0] + cuantas[1] + cuantas[2];
+        int espacio = espacio(lista);
+        if (espacio <= 0) return new int[]{-1, pedidas};
+        int sobran = pedidas - espacio;
+        for (int i = 2; i >= 0 && sobran > 0; i--) {
+            int quitar = Math.min(sobran, cuantas[i]);
+            cuantas[i] -= quitar;
+            sobran -= quitar;
+        }
+        List<String> yaTiene = new ArrayList<>(lista.stream().map(m -> m.plantilla).toList());
+        List<Mision> nuevas = new ArrayList<>();
+        Dificultad[] difs = Dificultad.values();
+        for (int i = 0; i < 3; i++) {
+            List<Mision> elegidas = Catalogo.alAzar(difs[i], cuantas[i], yaTiene, sirve(player));
+            elegidas.forEach(m -> yaTiene.add(m.plantilla));
+            nuevas.addAll(elegidas);
+        }
+        lista.addAll(nuevas);
+        Datos.guardar(player, lista);
+        return new int[]{nuevas.size(), pedidas};
+    }
+
     private Gestor() {}
 }

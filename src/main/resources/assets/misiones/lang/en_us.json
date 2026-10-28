@@ -95,5 +95,16 @@
   "misiones.modo.azar": "random",
   "misiones.sin_limite": "no limit",
   "misiones.si": "yes",
-  "misiones.no": "no"
+  "misiones.no": "no",
+  "key.category.misiones.teclas": "Missions",
+  "misiones.tecla.lista": "View my missions",
+  "misiones.tecla.menu": "Missions menu",
+  "misiones.pantalla.lista": "My missions",
+  "misiones.pantalla.vacia": "You have no missions. Generate some with /missions generar 5",
+  "misiones.pantalla.espera": "Waiting: %s",
+  "misiones.pantalla.diaria": "(daily)",
+  "misiones.pantalla.cumplida": "Done",
+  "misiones.pantalla.premio": "Reward: %s",
+  "misiones.agregada.simple": "Mission added.",
+  "misiones.ajustes.guardados": "Settings saved."
 }

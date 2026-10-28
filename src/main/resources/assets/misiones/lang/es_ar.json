@@ -95,5 +95,16 @@
   "misiones.modo.azar": "al azar",
   "misiones.sin_limite": "sin límite",
   "misiones.si": "sí",
-  "misiones.no": "no"
+  "misiones.no": "no",
+  "key.category.misiones.teclas": "Misiones",
+  "misiones.tecla.lista": "Ver mis misiones",
+  "misiones.tecla.menu": "Menú de misiones",
+  "misiones.pantalla.lista": "Mis misiones",
+  "misiones.pantalla.vacia": "No tienes misiones. Genera algunas con /misiones generar 5",
+  "misiones.pantalla.espera": "En espera: %s",
+  "misiones.pantalla.diaria": "(del día)",
+  "misiones.pantalla.cumplida": "Cumplida",
+  "misiones.pantalla.premio": "Premio: %s",
+  "misiones.agregada.simple": "Misión agregada.",
+  "misiones.ajustes.guardados": "Ajustes guardados."
 }

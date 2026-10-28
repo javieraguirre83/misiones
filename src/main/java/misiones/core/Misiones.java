@@ -6,6 +6,7 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,5 +24,9 @@ public final class Misiones {
         });
         Eventos.registrar();
         RegisterCommandsEvent.BUS.addListener(e -> Comandos.registrar(e.getDispatcher(), e.getBuildContext()));
+        misiones.red.Red.registrar();
+        if (FMLEnvironment.dist.isClient()) {
+            misiones.cliente.Cliente.iniciar();
+        }
     }
 }

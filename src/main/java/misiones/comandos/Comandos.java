@@ -254,35 +254,14 @@ public final class Comandos {
 
     private static int generar(CommandContext<CommandSourceStack> ctx, int faciles, int medias, int dificiles) throws CommandSyntaxException {
         ServerPlayer player = ctx.getSource().getPlayerOrException();
-        List<Mision> lista = Datos.lista(player);
-        int[] cuantas;
-        if (faciles < 0) cuantas = Catalogo.repartir(IntegerArgumentType.getInteger(ctx, "total"));
-        else cuantas = new int[]{faciles, medias, dificiles};
-        int pedidas = cuantas[0] + cuantas[1] + cuantas[2];
-        int espacio = Gestor.espacio(lista);
-        if (espacio <= 0) {
+        int[] cuantas = faciles < 0 ? Catalogo.repartir(IntegerArgumentType.getInteger(ctx, "total")) : new int[]{faciles, medias, dificiles};
+        int[] r = Gestor.generar(player, cuantas);
+        if (r[0] < 0) {
             ctx.getSource().sendFailure(Component.translatable("misiones.limite.lleno", Ajustes.limite));
             return 0;
         }
-        // Over the limit: remove from the hardest first
-        int sobran = pedidas - espacio;
-        for (int i = 2; i >= 0 && sobran > 0; i--) {
-            int quitar = Math.min(sobran, cuantas[i]);
-            cuantas[i] -= quitar;
-            sobran -= quitar;
-        }
-        List<String> yaTiene = new ArrayList<>(lista.stream().map(m -> m.plantilla).toList());
-        List<Mision> nuevas = new ArrayList<>();
-        Dificultad[] difs = Dificultad.values();
-        for (int i = 0; i < 3; i++) {
-            List<Mision> elegidas = Catalogo.alAzar(difs[i], cuantas[i], yaTiene, Gestor.sirve(player));
-            elegidas.forEach(m -> yaTiene.add(m.plantilla));
-            nuevas.addAll(elegidas);
-        }
-        lista.addAll(nuevas);
-        Datos.guardar(player, lista);
-        ctx.getSource().sendSuccess(() -> Component.translatable("misiones.generadas", nuevas.size()).withStyle(ChatFormatting.GREEN), false);
-        if (nuevas.size() < pedidas) {
+        ctx.getSource().sendSuccess(() -> Component.translatable("misiones.generadas", r[0]).withStyle(ChatFormatting.GREEN), false);
+        if (r[0] < r[1]) {
             ctx.getSource().sendSuccess(() -> Component.translatable("misiones.limite.recortado", Ajustes.limite).withStyle(ChatFormatting.GOLD), false);
         }
         return lista(ctx);

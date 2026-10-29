@@ -209,7 +209,7 @@
   "misiones.menu.ayuda.fundir": "Cuenta lo que saques del horno, alto horno o ahumador.",
   "misiones.menu.ayuda.comerciar": "Tratos con aldeanos y comerciantes, o trueques con piglins.",
   "misiones.menu.ayuda.equipar": "La armadura tiene que estar puesta; armas y herramientas basta con traerlas.",
-  "misiones.menu.ayuda.explorar": "Llegar a una estructura, bioma, dimensión o altura.",
+  "misiones.menu.ayuda.explorar": "Llegar a una estructura, bioma, dimensión o altura. En estructuras puedes pedir varias distintas (por ejemplo, 10 aldeas diferentes).",
   "misiones.menu.ayuda.viajar": "Cuenta desde que te llega la misión.",
   "misiones.menu.ayuda.logros": "Los logros de Minecraft (los que ya tienes se cumplen al instante).",
   "misiones.menu.ayuda.sobrevivir": "Días seguidos sin morir; si mueres vuelve a 0.",
@@ -269,5 +269,9 @@
   "misiones.importar.pregunta": "«%s» tiene %s misiones. ¿Qué quieres hacer?",
   "misiones.importar.agregar": "Agregarlas a mi lista",
   "misiones.importar.reemplazar": "Reemplazar mi lista",
-  "misiones.importadas": "Se importaron %s misiones."
+  "misiones.importadas": "Se importaron %s misiones.",
+  "misiones.menu.variacion": "Variación de cantidades",
+  "misiones.menu.variacion_ayuda": "% (0 = exactas)",
+  "misiones.menu.cuantas_distintas": "Cuántas distintas",
+  "misiones.ajustes.variacion": "Variación de cantidades al azar: %s%%"
 }

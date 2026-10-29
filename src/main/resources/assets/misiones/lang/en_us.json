@@ -209,7 +209,7 @@
   "misiones.menu.ayuda.fundir": "What you take out of a furnace, blast furnace or smoker counts.",
   "misiones.menu.ayuda.comerciar": "Trades with villagers and traders, or bartering with piglins.",
   "misiones.menu.ayuda.equipar": "Armor must be worn; weapons and tools just carried.",
-  "misiones.menu.ayuda.explorar": "Reach a structure, biome, dimension or height.",
+  "misiones.menu.ayuda.explorar": "Reach a structure, biome, dimension or height. For structures you can ask for several different ones (e.g. 10 different villages).",
   "misiones.menu.ayuda.viajar": "Counts from when you get the mission.",
   "misiones.menu.ayuda.logros": "Minecraft advancements (ones you already have complete instantly).",
   "misiones.menu.ayuda.sobrevivir": "Days in a row without dying; dying resets it.",
@@ -269,5 +269,9 @@
   "misiones.importar.pregunta": "\"%s\" has %s missions. What do you want to do?",
   "misiones.importar.agregar": "Add them to my list",
   "misiones.importar.reemplazar": "Replace my list",
-  "misiones.importadas": "Imported %s missions."
+  "misiones.importadas": "Imported %s missions.",
+  "misiones.menu.variacion": "Amount variation",
+  "misiones.menu.variacion_ayuda": "% (0 = exact)",
+  "misiones.menu.cuantas_distintas": "How many different",
+  "misiones.ajustes.variacion": "Random amount variation: %s%%"
 }

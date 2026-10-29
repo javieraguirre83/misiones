@@ -27,6 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
 
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +44,32 @@ public final class Progreso {
 
     private static Identifier id(String texto) {
         return Cosas.id(texto);
+    }
+
+    /**
+     * The structure the player is standing in, as a number unique to that structure
+     * (its starting chunk), or null if they are not inside one of the asked kind.
+     */
+    public static Long estructuraAqui(String objetivo, ServerPlayer player) {
+        String o = objetivo.trim().toLowerCase(Locale.ROOT);
+        if (!o.startsWith("estructura:")) return null;
+        try {
+            ServerLevel level = player.level();
+            BlockPos pos = player.blockPosition();
+            String e = normalizar(o.substring(11));
+            StructureStart inicio;
+            if (e.startsWith("#")) {
+                TagKey<Structure> tag = TagKey.create(Registries.STRUCTURE, id(e.substring(1)));
+                inicio = level.structureManager().getStructureWithPieceAt(pos, tag);
+            } else {
+                ResourceKey<Structure> key = ResourceKey.create(Registries.STRUCTURE, id(e));
+                inicio = level.structureManager().getStructureWithPieceAt(pos, (Holder<Structure> h) -> h.is(key));
+            }
+            if (inicio == null || !inicio.isValid()) return null;
+            return inicio.getChunkPos().toLong();
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     /** EXPLORAR: dimension:, estructura:, bioma:, altura: */
@@ -62,13 +89,7 @@ public final class Progreso {
                 return biome.is(ResourceKey.create(Registries.BIOME, id(b)));
             }
             if (o.startsWith("estructura:")) {
-                String e = normalizar(o.substring(11));
-                if (e.startsWith("#")) {
-                    TagKey<Structure> tag = TagKey.create(Registries.STRUCTURE, id(e.substring(1)));
-                    return level.structureManager().getStructureWithPieceAt(pos, tag).isValid();
-                }
-                ResourceKey<Structure> key = ResourceKey.create(Registries.STRUCTURE, id(e));
-                return level.structureManager().getStructureWithPieceAt(pos, (Holder<Structure> h) -> h.is(key)).isValid();
+                return estructuraAqui(objetivo, player) != null;
             }
             if (o.startsWith("altura:")) {
                 String a = o.substring(7).replace(" ", "");
@@ -134,7 +155,7 @@ public final class Progreso {
         for (Objetivo o : m.objetivos) {
             if (!primero) texto.append(", ");
             primero = false;
-            String cuenta = o.progreso + "/" + o.cantidad + " ";
+            String cuenta = o.progreso + "/" + (o.rango.isEmpty() ? String.valueOf(o.cantidad) : o.rango) + " ";
             MutableComponent parte = switch (m.tipo) {
                 case CONSEGUIR, COFRE, FABRICAR, PESCAR, COMER, FUNDIR, ENCANTAR ->
                         Component.literal(cuenta).append(Cosas.nombreObjeto(o.objetivo));
@@ -146,11 +167,12 @@ public final class Progreso {
                         ? Component.translatable("misiones.cualquier.trato")
                         : Cosas.esMob(o.objetivo) ? Cosas.nombreMob(o.objetivo) : Cosas.nombreObjeto(o.objetivo));
                 case POCIONES -> Component.literal(cuenta).append(Cosas.nombrePocion(o.objetivo));
-                case VIAJAR -> Component.translatable("misiones.viajar." + Viajes.forma(o.objetivo), o.progreso, o.cantidad);
+                case VIAJAR -> Component.translatable("misiones.viajar." + Viajes.forma(o.objetivo), o.progreso, o.rango.isEmpty() ? String.valueOf(o.cantidad) : o.rango);
                 case LOGROS -> Cosas.nombreLogro(o.objetivo).copy();
-                case EXPLORAR -> nombreLugar(o.objetivo).copy();
-                case SOBREVIVIR -> Component.translatable("misiones.dias", o.progreso, o.cantidad);
-                case NIVEL -> Component.translatable("misiones.nivel", o.progreso, o.cantidad);
+                case EXPLORAR -> o.cantidad > 1 || !o.rango.isEmpty() ? Component.literal(cuenta).append(nombreLugar(o.objetivo))
+                        : nombreLugar(o.objetivo).copy();
+                case SOBREVIVIR -> Component.translatable("misiones.dias", o.progreso, o.rango.isEmpty() ? String.valueOf(o.cantidad) : o.rango);
+                case NIVEL -> Component.translatable("misiones.nivel", o.progreso, o.rango.isEmpty() ? String.valueOf(o.cantidad) : o.rango);
                 case LIBRE -> Component.literal(m.texto);
             };
             parte.withStyle(o.cumplido() ? ChatFormatting.GREEN : ChatFormatting.WHITE);
@@ -240,7 +262,18 @@ public final class Progreso {
                 }
                 case EXPLORAR -> {
                     for (Objetivo o : m.objetivos) {
-                        if (!o.cumplido() && lugarCumplido(o.objetivo, player)) cambio |= poner(o, o.cantidad);
+                        if (o.cumplido()) continue;
+                        Long estructura = Progreso.estructuraAqui(o.objetivo, player);
+                        if (estructura != null) {
+                            // Structures count one by one: each different one (e.g. a new village) adds 1
+                            if (!o.visitados.contains(estructura)) {
+                                o.visitados.add(estructura);
+                                cambio |= poner(o, o.progreso + 1);
+                                if (o.cantidad > 1) player.sendSystemMessage(descripcion(m).withStyle(ChatFormatting.YELLOW), true);
+                            }
+                        } else if (!o.objetivo.trim().toLowerCase(Locale.ROOT).startsWith("estructura:") && lugarCumplido(o.objetivo, player)) {
+                            cambio |= poner(o, o.cantidad);
+                        }
                     }
                 }
                 case NIVEL -> {

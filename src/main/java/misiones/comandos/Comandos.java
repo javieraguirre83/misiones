@@ -226,7 +226,7 @@ public final class Comandos {
         String id = StringArgumentType.getString(ctx, "id");
         Mision plantilla = Catalogo.buscar(id);
         if (plantilla == null) throw SIN_PLANTILLA.create(id);
-        return anadir(ctx, plantilla.copia());
+        return anadir(ctx, plantilla.copia().concretar(0));
     }
 
     // ---------- other subcommands ----------
@@ -271,7 +271,7 @@ public final class Comandos {
         String nombre = StringArgumentType.getString(ctx, "nombre");
         Mision inicio = Catalogo.inicioCadena(nombre);
         if (inicio == null) throw SIN_CADENA.create(nombre);
-        return anadir(ctx, inicio.copia());
+        return anadir(ctx, inicio.copia().concretar(0));
     }
 
     private static Mision obtener(CommandContext<CommandSourceStack> ctx, List<Mision> lista) throws CommandSyntaxException {
@@ -449,7 +449,9 @@ public final class Comandos {
                             return guardarAjustes(ctx);
                         })))
                 .then(Commands.literal("repartirtipos").then(Commands.argument("valor", StringArgumentType.word()).suggests(SI_NO)
-                        .executes(ctx -> { Ajustes.repartirTipos = si(StringArgumentType.getString(ctx, "valor")); return guardarAjustes(ctx); })));
+                        .executes(ctx -> { Ajustes.repartirTipos = si(StringArgumentType.getString(ctx, "valor")); return guardarAjustes(ctx); })))
+                .then(Commands.literal("variacion").then(Commands.argument("porcentaje", IntegerArgumentType.integer(0, 100))
+                        .executes(ctx -> { Ajustes.variacion = IntegerArgumentType.getInteger(ctx, "porcentaje"); return guardarAjustes(ctx); })));
     }
 
     private static boolean si(String texto) {
@@ -477,6 +479,7 @@ public final class Comandos {
                 Ajustes.dificultadDiaria.equals("azar") ? Component.translatable("misiones.modo.azar")
                         : Component.translatable(Dificultad.leer(Ajustes.dificultadDiaria, Dificultad.MEDIA).clave())), false);
         ctx.getSource().sendSuccess(() -> Component.translatable("misiones.ajustes.repartir", Ajustes.repartirTipos ? si : no), false);
+        ctx.getSource().sendSuccess(() -> Component.translatable("misiones.ajustes.variacion", Ajustes.variacion), false);
         return 1;
     }
 

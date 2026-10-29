@@ -73,7 +73,7 @@ public final class Gestor {
             Mision plantilla = Catalogo.buscar(m.siguiente);
             if (plantilla != null) {
                 player.sendSystemMessage(Component.translatable("misiones.cadena.siguiente", m.cadena).withStyle(ChatFormatting.LIGHT_PURPLE));
-                agregarOEsperar(player, lista, plantilla.copia());
+                agregarOEsperar(player, lista, plantilla.copia().concretar(0));
             }
         } else if (!m.cadena.isEmpty()) {
             player.sendSystemMessage(Component.translatable("misiones.cadena.terminada", m.cadena).withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));

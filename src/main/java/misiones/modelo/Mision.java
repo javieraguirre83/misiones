@@ -37,6 +37,12 @@ public class Mision {
         return true;
     }
 
+    /** Chooses the real amounts (ranges and random variation). See Objetivo.concretar. */
+    public Mision concretar(int variacion) {
+        objetivos.forEach(o -> o.concretar(variacion));
+        return this;
+    }
+
     public Mision copia() {
         Mision m = new Mision();
         m.plantilla = plantilla;

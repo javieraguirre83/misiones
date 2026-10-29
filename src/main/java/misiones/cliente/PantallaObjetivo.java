@@ -60,7 +60,7 @@ public class PantallaObjetivo extends Screen {
 
     private boolean necesitaNumero() {
         if (tipo == Tipo.LOGROS) return false;
-        return tipo != Tipo.EXPLORAR || clase.startsWith("altura");
+        return tipo != Tipo.EXPLORAR || clase.startsWith("altura") || clase.equals("estructura");
     }
 
     /** Enchantments make sense only for items you hold, store or wear. */
@@ -81,7 +81,7 @@ public class PantallaObjetivo extends Screen {
             case VIAJAR -> elegido != null && elegido.id().equals("saltar") ? "misiones.menu.saltos" : "misiones.menu.bloques";
             case SOBREVIVIR -> "misiones.menu.dias";
             case NIVEL -> "misiones.menu.nivel";
-            case EXPLORAR -> "misiones.menu.altura_y";
+            case EXPLORAR -> clase.equals("estructura") ? "misiones.menu.cuantas_distintas" : "misiones.menu.altura_y";
             default -> "misiones.menu.cantidad";
         };
     }
@@ -194,7 +194,7 @@ public class PantallaObjetivo extends Screen {
             nombre = Component.translatable(clase.equals("altura_abajo") ? "misiones.lugar.abajo" : "misiones.lugar.arriba", n);
             cantidad = 1;
         }
-        if (tipo == Tipo.EXPLORAR || tipo == Tipo.LOGROS) cantidad = 1;
+        if (tipo == Tipo.EXPLORAR && !clase.equals("estructura") || tipo == Tipo.LOGROS) cantidad = 1;
         if (tipo == Tipo.SOBREVIVIR) nombre = Component.translatable("misiones.dias", 0, cantidad);
         if (tipo == Tipo.NIVEL) nombre = Component.translatable("misiones.nivel", 0, cantidad);
 

@@ -29,7 +29,7 @@ public final class Catalogo {
     private static final Gson GSON = new Gson();
     public static final Path ARCHIVO = Path.of("config", "misiones", "misiones.json");
     private static final String RECURSO = "/misiones/catalogo.json";
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
 
     private static final List<Mision> PLANTILLAS = new ArrayList<>();
     private static final Random RANDOM = new Random();
@@ -120,19 +120,19 @@ public final class Catalogo {
             while (resultado.size() < cantidad && !tipos.isEmpty()) {
                 Tipo t = tipos.get(vuelta % tipos.size());
                 List<Mision> grupo = porTipo.get(t);
-                resultado.add(grupo.remove(grupo.size() - 1).copia());
+                resultado.add(grupo.remove(grupo.size() - 1).copia().concretar(Ajustes.variacion));
                 if (grupo.isEmpty()) tipos.remove(t); else vuelta++;
                 if (!tipos.isEmpty() && vuelta >= tipos.size()) { vuelta = 0; Collections.shuffle(tipos, RANDOM); }
             }
         } else {
             for (Mision m : frescas) {
                 if (resultado.size() >= cantidad) break;
-                resultado.add(m.copia());
+                resultado.add(m.copia().concretar(Ajustes.variacion));
             }
         }
         // Not enough new ones: allow repeats
         while (resultado.size() < cantidad) {
-            resultado.add(candidatas.get(RANDOM.nextInt(candidatas.size())).copia());
+            resultado.add(candidatas.get(RANDOM.nextInt(candidatas.size())).copia().concretar(Ajustes.variacion));
         }
         return resultado;
     }
@@ -145,7 +145,7 @@ public final class Catalogo {
         try {
             Files.createDirectories(ARCHIVO.getParent());
             if (Files.exists(ARCHIVO) && version(ARCHIVO) < VERSION) {
-                Path copia = ARCHIVO.resolveSibling("misiones_v1_respaldo.json");
+                Path copia = ARCHIVO.resolveSibling("misiones_respaldo_v" + version(ARCHIVO) + ".json");
                 Files.move(ARCHIVO, copia, StandardCopyOption.REPLACE_EXISTING);
                 Misiones.LOGGER.info("Catalogo viejo guardado como {}", copia);
             }

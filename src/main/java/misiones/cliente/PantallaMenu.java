@@ -63,6 +63,7 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
     private String pFacil = "50", pMedia = "33", pDificil = "17", limiteTxt = "10";
     private boolean diaria = true, repartir = true;
     private String difDiaria = "azar";
+    private String variacionTxt = "50";
 
     public PantallaMenu() {
         super(Component.translatable("misiones.menu.titulo"));
@@ -360,7 +361,9 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
                 Mision una = new Mision();
                 una.tipo = m.tipo;
                 una.objetivos.add(o.copia());
-                cosas.add(new PantallaObjetivo.Cosa(o.objetivo, o.cantidad, Progreso.nombreObjetivo(m.tipo, o.objetivo, m.texto), Iconos.de(una)));
+                misiones.modelo.Objetivo real = o.copia();
+                real.concretar(0); // a catalog range picks its number now
+                cosas.add(new PantallaObjetivo.Cosa(real.objetivo, real.cantidad, Progreso.nombreObjetivo(m.tipo, real.objetivo, m.texto), Iconos.de(una)));
             }
         }
         for (misiones.modelo.Recompensa r : m.recompensas) {
@@ -506,7 +509,7 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
                 int yy = y + i * 18;
                 if (!c.icono().isEmpty()) g.item(c.icono(), izq + 2, yy);
                 MutableComponent t = Component.empty();
-                if (tipo != Tipo.EXPLORAR && tipo != Tipo.LOGROS) t.append(Component.literal(c.cantidad() + " × ").withStyle(ChatFormatting.GOLD));
+                if (tipo != Tipo.LOGROS && (tipo != Tipo.EXPLORAR || c.cantidad() > 1)) t.append(Component.literal(c.cantidad() + " × ").withStyle(ChatFormatting.GOLD));
                 t.append(c.nombre());
                 List<FormattedCharSequence> partes = font.split(t, der - izq - 46);
                 if (!partes.isEmpty()) g.text(font, partes.get(0), izq + 22, yy + 4, 0xFFFFFFFF);
@@ -581,6 +584,7 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
         diaria = a.getBooleanOr("diaria", true);
         difDiaria = a.getStringOr("dificultadDiaria", "azar");
         repartir = a.getBooleanOr("repartirTipos", true);
+        variacionTxt = String.valueOf(a.getIntOr("variacion", 50));
         ajustesCargados = true;
     }
 
@@ -595,6 +599,7 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
             d.putBoolean("diaria", diaria);
             d.putString("dificultadDiaria", difDiaria);
             d.putBoolean("repartirTipos", repartir);
+            d.putInt("variacion", Math.max(0, Math.min(100, numero(variacionTxt, 50))));
         });
     }
 
@@ -606,24 +611,30 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
         });
     }
 
+    /** Settings rows are a bit closer together so all of them fit above the bottom buttons. */
+    private int filaAjuste(int i) {
+        return arriba + 4 + i * 22;
+    }
+
     private void initAjustes() {
         if (!ajustesCargados) cargarAjustes();
         int x = izq + 150, w = Math.min(160, der - x);
         addRenderableWidget(CycleButton.builder((String m) -> Component.translatable("misiones.modo." + m), modo)
                 .withValues(List.of("balanceado", "azar")).displayOnlyValue()
-                .create(x, fila(0), w, 20, Component.translatable("misiones.menu.modo"), (b, v) -> { modo = v; guardarAjustes(); }));
-        campoAjuste(x, fila(1), 40, pFacil, s -> pFacil = s);
-        campoAjuste(x + 44, fila(1), 40, pMedia, s -> pMedia = s);
-        campoAjuste(x + 88, fila(1), 40, pDificil, s -> pDificil = s);
-        campoAjuste(x, fila(2), 50, limiteTxt, s -> limiteTxt = s);
+                .create(x, filaAjuste(0), w, 20, Component.translatable("misiones.menu.modo"), (b, v) -> { modo = v; guardarAjustes(); }));
+        campoAjuste(x, filaAjuste(1), 40, pFacil, s -> pFacil = s);
+        campoAjuste(x + 44, filaAjuste(1), 40, pMedia, s -> pMedia = s);
+        campoAjuste(x + 88, filaAjuste(1), 40, pDificil, s -> pDificil = s);
+        campoAjuste(x, filaAjuste(2), 50, limiteTxt, s -> limiteTxt = s);
         addRenderableWidget(CycleButton.onOffBuilder(diaria).displayOnlyValue()
-                .create(x, fila(3), w, 20, Component.translatable("misiones.menu.diaria"), (b, v) -> { diaria = v; guardarAjustes(); }));
+                .create(x, filaAjuste(3), w, 20, Component.translatable("misiones.menu.diaria"), (b, v) -> { diaria = v; guardarAjustes(); }));
         addRenderableWidget(CycleButton.builder((String d) -> d.equals("azar") ? Component.translatable("misiones.modo.azar")
                         : Component.translatable("misiones.dificultad." + d), difDiaria)
                 .withValues(List.of("azar", "facil", "media", "dificil")).displayOnlyValue()
-                .create(x, fila(4), w, 20, Component.translatable("misiones.menu.dificultad_diaria"), (b, v) -> { difDiaria = v; guardarAjustes(); }));
+                .create(x, filaAjuste(4), w, 20, Component.translatable("misiones.menu.dificultad_diaria"), (b, v) -> { difDiaria = v; guardarAjustes(); }));
         addRenderableWidget(CycleButton.onOffBuilder(repartir).displayOnlyValue()
-                .create(x, fila(5), w, 20, Component.translatable("misiones.menu.repartir"), (b, v) -> { repartir = v; guardarAjustes(); }));
+                .create(x, filaAjuste(5), w, 20, Component.translatable("misiones.menu.repartir"), (b, v) -> { repartir = v; guardarAjustes(); }));
+        campoAjuste(x, filaAjuste(6), 50, variacionTxt, s -> variacionTxt = s);
         int w2 = (der - izq) / 2;
         boton("misiones.menu.abrir_carpeta", izq, height - 56, w2 - 2, b -> abrirCarpeta());
         boton("misiones.menu.recargar", izq + w2, height - 56, w2 - 2, b -> enviar("recargar", d -> { }));
@@ -642,9 +653,10 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
 
     private void dibujarAjustes(GuiGraphicsExtractor g) {
         String[] etiquetas = {"misiones.menu.modo", "misiones.menu.porcentajes", "misiones.menu.limite", "misiones.menu.diaria",
-                "misiones.menu.dificultad_diaria", "misiones.menu.repartir"};
-        for (int i = 0; i < etiquetas.length; i++) g.text(font, Component.translatable(etiquetas[i]), izq, fila(i) + 6, 0xFFFFFFFF);
-        g.text(font, Component.translatable("misiones.menu.limite_ayuda").withStyle(ChatFormatting.GRAY), izq + 210, fila(2) + 6, -1);
+                "misiones.menu.dificultad_diaria", "misiones.menu.repartir", "misiones.menu.variacion"};
+        for (int i = 0; i < etiquetas.length; i++) g.text(font, Component.translatable(etiquetas[i]), izq, filaAjuste(i) + 6, 0xFFFFFFFF);
+        g.text(font, Component.translatable("misiones.menu.limite_ayuda").withStyle(ChatFormatting.GRAY), izq + 210, filaAjuste(2) + 6, -1);
+        g.text(font, Component.translatable("misiones.menu.variacion_ayuda").withStyle(ChatFormatting.GRAY), izq + 210, filaAjuste(6) + 6, -1);
     }
 
     // ---------- drawing and input ----------

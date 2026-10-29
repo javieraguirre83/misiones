@@ -1,5 +1,5 @@
 {
- "version": 2,
+ "version": 3,
  "misiones": [
   {"id": "manzanas", "tipo": "conseguir", "dificultad": "facil", "objetivos": [{"objetivo": "minecraft:apple", "cantidad": 16}]},
   {"id": "troncos", "tipo": "conseguir", "dificultad": "facil", "objetivos": [{"objetivo": "#minecraft:logs", "cantidad": 64}]},
@@ -601,6 +601,8 @@
   {"id": "secar_esponja", "tipo": "fundir", "dificultad": "dificil", "objetivos": [{"objetivo": "minecraft:sponge", "cantidad": 1}]},
   {"id": "fundir_piedra_1024", "tipo": "fundir", "dificultad": "dificil", "objetivos": [{"objetivo": "minecraft:stone", "cantidad": 1024}]},
   {"id": "fundir_cobre_256", "tipo": "fundir", "dificultad": "dificil", "objetivos": [{"objetivo": "minecraft:copper_ingot", "cantidad": 256}]},
+  {"id": "aldeas_varias", "tipo": "explorar", "dificultad": "media", "objetivos": [{"objetivo": "estructura:#minecraft:village", "cantidad": "3-6"}]},
+  {"id": "aldeas_muchas", "tipo": "explorar", "dificultad": "dificil", "objetivos": [{"objetivo": "estructura:#minecraft:village", "cantidad": "8-12"}]},
   {"id": "wither_1", "tipo": "conseguir", "dificultad": "media", "cadena": "wither", "objetivos": [{"objetivo": "minecraft:iron_ingot", "cantidad": 32}], "siguiente": "wither_2"},
   {"id": "wither_2", "tipo": "minar", "dificultad": "media", "cadena": "wither", "objetivos": [{"objetivo": "#minecraft:diamond_ores", "cantidad": 5}], "siguiente": "wither_3"},
   {"id": "wither_3", "tipo": "explorar", "dificultad": "media", "cadena": "wither", "objetivos": [{"objetivo": "dimension:minecraft:the_nether", "cantidad": 1}], "siguiente": "wither_4"},

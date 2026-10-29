@@ -29,6 +29,8 @@ public final class Ajustes {
     public static String dificultadDiaria = "azar";
     /** Spread mission types when generating (not 5 kill missions in a row). */
     public static boolean repartirTipos = true;
+    /** How much random-generated amounts move up or down, in percent (0 = exact catalog amounts). */
+    public static int variacion = 50;
 
     public static void cargar() {
         try {
@@ -47,6 +49,7 @@ public final class Ajustes {
                         if (j.has("diaria")) diaria = j.get("diaria").getAsBoolean();
                         if (j.has("dificultadDiaria")) dificultadDiaria = j.get("dificultadDiaria").getAsString().toLowerCase(Locale.ROOT);
                         if (j.has("repartirTipos")) repartirTipos = j.get("repartirTipos").getAsBoolean();
+                        if (j.has("variacion")) variacion = Math.max(0, Math.min(100, j.get("variacion").getAsInt()));
                     }
                 }
             }
@@ -67,7 +70,8 @@ public final class Ajustes {
             JsonObject j = new JsonObject();
             j.addProperty("_ayuda", "modo: balanceado o azar. limite: misiones activas a la vez (0 = sin limite). "
                     + "diaria: true/false. dificultadDiaria: azar, facil, media o dificil. "
-                    + "repartirTipos: true = no repetir el mismo tipo seguido.");
+                    + "repartirTipos: true = no repetir el mismo tipo seguido. "
+                    + "variacion: cuanto cambian al azar las cantidades (porcentaje, 0 = exactas).");
             j.addProperty("modo", modo);
             JsonObject b = new JsonObject();
             b.addProperty("facil", porcentajeFacil);
@@ -78,6 +82,7 @@ public final class Ajustes {
             j.addProperty("diaria", diaria);
             j.addProperty("dificultadDiaria", dificultadDiaria);
             j.addProperty("repartirTipos", repartirTipos);
+            j.addProperty("variacion", variacion);
             try (Writer w = Files.newBufferedWriter(ARCHIVO, StandardCharsets.UTF_8)) {
                 GSON.toJson(j, w);
             }

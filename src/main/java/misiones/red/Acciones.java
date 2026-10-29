@@ -151,7 +151,7 @@ public final class Acciones {
             case "cadena" -> {
                 Mision inicio = Catalogo.inicioCadena(d.getStringOr("nombre", ""));
                 if (inicio != null) {
-                    lista.add(inicio.copia());
+                    lista.add(inicio.copia().concretar(0));
                     Datos.guardar(player, lista);
                     aviso = "misiones.agregada.simple";
                 }
@@ -165,6 +165,7 @@ public final class Acciones {
                 if (d.contains("diaria")) Ajustes.diaria = d.getBooleanOr("diaria", true);
                 if (d.contains("dificultadDiaria")) Ajustes.dificultadDiaria = d.getStringOr("dificultadDiaria", "azar");
                 if (d.contains("repartirTipos")) Ajustes.repartirTipos = d.getBooleanOr("repartirTipos", true);
+                if (d.contains("variacion")) Ajustes.variacion = Math.max(0, Math.min(100, d.getIntOr("variacion", 50)));
                 Ajustes.guardar();
                 if (Gestor.rellenar(player, lista)) Datos.guardar(player, lista);
                 aviso = "misiones.ajustes.guardados";
@@ -222,6 +223,7 @@ public final class Acciones {
         a.putBoolean("diaria", Ajustes.diaria);
         a.putString("dificultadDiaria", Ajustes.dificultadDiaria);
         a.putBoolean("repartirTipos", Ajustes.repartirTipos);
+        a.putInt("variacion", Ajustes.variacion);
         d.put("ajustes", a);
 
         ListTag cadenas = new ListTag();

@@ -12,8 +12,10 @@ Generador de misiones para darle un **objetivo** a cada partida: desde "consigue
 
 **[Descargar el mod (.jar)](https://github.com/javieraguirre83/misiones/releases/download/ultima/Misiones-2.3.0-forge-26.2.jar)**
 
-1. Descarga el archivo `.jar` (si tenías la versión 1, borra el `.jar` viejo de la carpeta `mods`).
-2. Presiona **Windows + R**, escribe `%appdata%\.minecraft\mods` y dale Enter.
+1. Descarga el archivo `.jar` (si tenías una versión anterior, borra el `.jar` viejo de la carpeta `mods`).
+2. Abre la carpeta `mods`:
+   - **Windows:** presiona **Windows + R**, escribe `%appdata%\.minecraft\mods` y dale Enter.
+   - **Mac:** en Finder presiona **Cmd + Shift + G**, escribe `~/Library/Application Support/minecraft/mods` y dale Enter.
 3. Pega ahí el `.jar` y abre Minecraft con el perfil de **Forge 26.2**.
 
 Los textos salen en **español o inglés** según el idioma de tu Minecraft. El comando funciona como `/misiones` o `/missions`. **No necesitas trucos activados.**
@@ -30,11 +32,32 @@ Los textos salen en **español o inglés** según el idioma de tu Minecraft. El 
 Las teclas se cambian en **Opciones → Controles → Asignación de teclas → Misiones**.
 
 El menú (M) tiene 5 pestañas:
-- **Mis misiones:** haz clic en una para elegirla y usa los botones *Completar*, *Borrar*, *Premio…*, *Encantamiento…* o *Pedir adorno*. También puedes *Quitar cumplidas* o *Borrar todas*.
-- **Generar:** cuántas en total (según el modo), o cuántas fáciles, medias y difíciles.
-- **Agregar:** elige el tipo, luego *Elegir…* abre una lista con buscador (objetos, bloques, criaturas, pociones, estructuras, biomas, logros…). Pon la cantidad y la dificultad y dale *Agregar misión*.
-- **Cadenas:** elige una cadena, mira sus pasos y dale *Empezar esta cadena*.
-- **Ajustes:** modo, porcentajes, límite, misión diaria, repartir tipos. Abajo están **Abrir carpeta del catálogo** (para editar `misiones.json`) y **Recargar catálogo**.
+
+**Mis misiones**: haz clic en una misión para elegirla y usa:
+- *Completar*: la marca como cumplida.
+- *Editar*: la abre en la pestaña Agregar con todo cargado; cambias lo que quieras y le das *Guardar cambios* (lo que ya llevabas avanzado se respeta).
+- *Borrar*: la quita.
+- *Dar premio…*: le agrega un premio (experiencia o un objeto).
+- Abajo: *Quitar cumplidas*, *Borrar todas* (pide un segundo clic para confirmar) y *Ver lista (J)*.
+
+**Generar**: cuántas en total (según el modo), o cuántas fáciles, medias y difíciles.
+
+**Agregar**: aquí se arma una misión completa:
+1. Elige el **Tipo** y la **Dificultad**.
+2. **+ Agregar cosa** abre una pantalla para definir lo que pide:
+   - **Qué**: *Elegir…* abre una lista con buscador (objetos, bloques, criaturas, pociones, estructuras, biomas, logros…). Al inicio está "Lo que sea".
+   - **Cantidad** (o bloques, días, nivel, según el tipo).
+   - **Encantamientos** que debe tener, uno o varios con su nivel mínimo (en conseguir, cofre, equipar, encantar, pescar y comerciar).
+   - **Adorno** de herrería: ninguno, cualquiera o uno específico (en conseguir, cofre y equipar).
+   - Dale *Listo*. Puedes agregar varias cosas a la misma misión (por ejemplo, las 4 piezas de una armadura). Cada una tiene una **✕** para quitarla.
+3. **Premios** (opcional): *+ Premio* para agregar experiencia u objetos, *Quitar* para borrarlos.
+4. *Crear misión*.
+
+También están *Del catálogo…* (abre las 630 misiones del catálogo con buscador; la que elijas se carga para que la revises o cambies antes de crearla) y *Empezar de nuevo*.
+
+**Cadenas**: elige una cadena, mira sus pasos y dale *Empezar esta cadena*.
+
+**Ajustes**: modo, porcentajes, límite, misión diaria y su dificultad, repartir tipos. **Cada cambio se guarda solo.** Abajo están *Abrir carpeta del catálogo* (para editar `misiones.json`) y *Recargar catálogo*.
 
 Los comandos de abajo siguen funcionando igual, por si los prefieres.
 
@@ -191,11 +214,20 @@ Las misiones no dan nada de fábrica, pero se puede agregar una recompensa:
 
 ## 📄 Agregar tus propias misiones al catálogo
 
-Las misiones al azar salen del archivo **`config/misiones/misiones.json`**, dentro de tu carpeta `.minecraft`. Se crea solo la primera vez que abres el juego con el mod. Si tenías la versión 1, el archivo viejo se guarda como `misiones_v1_respaldo.json`.
+Las misiones al azar salen del archivo **`config/misiones/misiones.json`**, dentro de tu carpeta de Minecraft. Se crea solo la primera vez que abres el juego con el mod. Si tenías la versión 1, el archivo viejo se guarda como `misiones_v1_respaldo.json`.
+
+Para abrir esa carpeta:
+- **Desde el juego (lo más fácil):** **M → Ajustes → Abrir carpeta del catálogo**.
+- **Windows:** **Windows + R**, escribe `%appdata%\.minecraft\config\misiones` y dale Enter.
+- **Mac:** en Finder **Cmd + Shift + G**, escribe `~/Library/Application Support/minecraft/config/misiones` y dale Enter.
+
+(Si usas otro launcher como CurseForge o Prism, está en la carpeta de esa instancia, dentro de `config/misiones`.)
 
 **Pasos:**
 1. Cierra Minecraft, o déjalo abierto y usa `/misiones recargar` al terminar.
-2. Abre `misiones.json` con el **Bloc de notas**.
+2. Abre `misiones.json`:
+   - **Windows:** con el **Bloc de notas**.
+   - **Mac:** con **TextEdit**. Antes de editar, en el menú *Formato* elige **Convertir a texto normal** (si no, puede guardarlo con formato y el juego no lo lee).
 3. Cada misión ocupa **una línea**. Copia una línea parecida a la que quieres, pégala abajo y cámbiale los datos.
 4. Fíjate en que **todas las líneas terminen en coma**, menos la última de la lista.
 5. Guarda y usa `/misiones recargar`. Si escribiste algo mal, el juego avisa en el registro y usa las misiones de fábrica.

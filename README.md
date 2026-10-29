@@ -38,7 +38,7 @@ El menú (M) tiene 5 pestañas:
 - *Editar*: la abre en la pestaña Agregar con todo cargado; cambias lo que quieras y le das *Guardar cambios* (lo que ya llevabas avanzado se respeta).
 - *Borrar*: la quita.
 - *Dar premio…*: le agrega un premio (experiencia o un objeto).
-- Abajo: *Quitar cumplidas*, *Borrar todas* (pide un segundo clic para confirmar) y *Ver lista (J)*.
+- Abajo: *Quitar cumplidas*, *Borrar todas* (pide un segundo clic para confirmar), *Exportar…*, *Importar…* y *Ver lista (J)*. Exportar e Importar se explican [más abajo](#-exportar-e-importar-tus-misiones).
 
 **Generar**: cuántas en total (según el modo), o cuántas fáciles, medias y difíciles.
 
@@ -209,6 +209,31 @@ Las misiones no dan nada de fábrica, pero se puede agregar una recompensa:
 | `/misiones catalogo` | Cuántas misiones hay de cada tipo |
 | `/misiones catalogo minar` | Ver todas las misiones de un tipo |
 | `/misiones recargar` | Volver a leer los archivos después de editarlos |
+
+---
+
+## 💾 Exportar e importar tus misiones
+
+Tus misiones se guardan dentro de tu mundo. Para tenerlas en un archivo que puedas **editar o compartir**, usa los botones de **M → Mis misiones**:
+
+**Exportar…**
+1. Escribe el nombre del archivo (de fábrica: `mis_misiones`).
+2. Elige **Con avance** (guarda lo que llevas, por ejemplo 30 de 100 manzanas) o **Desde cero** (sin avance, ideal para compartir).
+3. Se guarda en `config/misiones/exportadas/<nombre>.json`. Si ya existía un archivo con ese nombre, se reemplaza.
+
+**Importar…**
+1. Te muestra los archivos de la carpeta `exportadas`. Elige uno.
+2. Te dice cuántas misiones tiene y eliges **Agregarlas a mi lista** o **Reemplazar mi lista**.
+3. Si el archivo tenía avance, se respeta (incluso los bloques de *viajar* y los días de *sobrevivir*).
+
+**Para compartir una lista:** manda tu archivo a la otra persona. Ella lo pone en su carpeta `config/misiones/exportadas` y lo importa.
+
+Para abrir esa carpeta:
+- **Desde el juego:** **M → Ajustes → Abrir carpeta del catálogo**, y ahí entra a `exportadas` (se crea la primera vez que exportas).
+- **Windows:** **Windows + R**, escribe `%appdata%\.minecraft\config\misiones\exportadas` y dale Enter.
+- **Mac:** en Finder **Cmd + Shift + G**, escribe `~/Library/Application Support/minecraft/config/misiones/exportadas` y dale Enter.
+
+El archivo usa el mismo formato que el catálogo (explicado abajo), así que puedes editarlo igual: cambiar cantidades, borrar misiones o agregar nuevas. Las misiones con avance llevan además `"progreso"` en cada cosa y `"completada": true` si ya estaban cumplidas.
 
 ---
 

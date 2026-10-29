@@ -2,7 +2,8 @@
 
 Generador de misiones para darle un **objetivo** a cada partida: desde "consigue 16 manzanas" hasta "vence al Wither con una espada Filo V".
 
-- **20 tipos de misión** y **600 misiones** de fábrica (10 por tipo en cada dificultad).
+- **20 tipos de misión** y más de **600 misiones** de fábrica (10 por tipo en cada dificultad, más extras de aldeas y las cadenas).
+- **Cantidades al azar**: las misiones generadas cambian su cantidad cada vez (por ejemplo, "32 diamantes" puede salir entre 16 y 48).
 - **Misión diaria**: cada día de Minecraft te llega una nueva.
 - **Cadenas**: al cumplir una misión se desbloquea la siguiente.
 - **Límite** de misiones activas a la vez (10 de fábrica).
@@ -46,18 +47,18 @@ El menú (M) tiene 5 pestañas:
 1. Elige el **Tipo** y la **Dificultad**.
 2. **+ Agregar cosa** abre una pantalla para definir lo que pide:
    - **Qué**: *Elegir…* abre una lista con buscador (objetos, bloques, criaturas, pociones, estructuras, biomas, logros…). Al inicio está "Lo que sea".
-   - **Cantidad** (o bloques, días, nivel, según el tipo).
+   - **Cantidad** (o bloques, días, nivel, según el tipo). En *Explorar → Estructura* es **cuántas distintas**: por ejemplo, 10 aldeas diferentes.
    - **Encantamientos** que debe tener, uno o varios con su nivel mínimo (en conseguir, cofre, equipar, encantar, pescar y comerciar).
    - **Adorno** de herrería: ninguno, cualquiera o uno específico (en conseguir, cofre y equipar).
    - Dale *Listo*. Puedes agregar varias cosas a la misma misión (por ejemplo, las 4 piezas de una armadura). Cada una tiene una **✕** para quitarla.
 3. **Premios** (opcional): *+ Premio* para agregar experiencia u objetos, *Quitar* para borrarlos.
 4. *Crear misión*.
 
-También están *Del catálogo…* (abre las 630 misiones del catálogo con buscador; la que elijas se carga para que la revises o cambies antes de crearla) y *Empezar de nuevo*.
+También están *Del catálogo…* (abre todas las misiones del catálogo con buscador; la que elijas se carga para que la revises o cambies antes de crearla) y *Empezar de nuevo*.
 
 **Cadenas**: elige una cadena, mira sus pasos y dale *Empezar esta cadena*.
 
-**Ajustes**: modo, porcentajes, límite, misión diaria y su dificultad, repartir tipos. **Cada cambio se guarda solo.** Abajo están *Abrir carpeta del catálogo* (para editar `misiones.json`) y *Recargar catálogo*.
+**Ajustes**: modo, porcentajes, límite, misión diaria y su dificultad, repartir tipos y variación de cantidades. **Cada cambio se guarda solo.** Abajo están *Abrir carpeta del catálogo* (para editar `misiones.json`) y *Recargar catálogo*.
 
 Los comandos de abajo siguen funcionando igual, por si los prefieres.
 
@@ -75,6 +76,7 @@ Los comandos de abajo siguen funcionando igual, por si los prefieres.
 - **Al azar:** cualquier dificultad.
 - Además se **reparten los tipos**, para que no te salgan 5 de matar seguidas.
 - No te salen logros que ya tienes.
+- **Las cantidades cambian al azar** (variación de 50% de fábrica): "32 diamantes" puede salir como 20, 41, etc. Las misiones de 1 (matar al Wither, un logro…) no cambian. Esto aplica a las que salen al azar y a la misión diaria; las que agregas tú, las que eliges del catálogo y las cadenas salen con su número exacto. Se cambia en **M → Ajustes → Variación de cantidades** (0 = exactas).
 
 ## 📜 Los 20 tipos de misión
 
@@ -95,7 +97,7 @@ Los comandos de abajo siguen funcionando igual, por si los prefieres.
 | 🔥 Fundir | Sacar cosas del horno, alto horno o ahumador |
 | 🤝 Comerciar | Tratos con aldeanos y comerciantes, o trueques con piglins |
 | 🛡 Equipar | Traer **puesta** la armadura (las armas y herramientas basta con tenerlas en el inventario), con los encantamientos que pida |
-| 🧭 Explorar | Llegar a una dimensión, estructura, bioma o altura |
+| 🧭 Explorar | Llegar a una dimensión, estructura, bioma o altura. Con estructuras puede pedir **varias distintas**: "Conoce 10 aldeas" cuenta 1 por cada aldea nueva que pises |
 | 🗺 Viajar | Recorrer bloques caminando, en barco, con élitros, etc. |
 | 🏆 Logros | Conseguir un logro de Minecraft |
 | ⏳ Sobrevivir | Pasar días sin morir (si mueres, vuelve a 0) |
@@ -132,6 +134,7 @@ Cadenas de fábrica: **wither** (del hierro al Wither), **end** (hasta matar al 
 | `/misiones ajustes diaria no` | Apagar la misión diaria (o `si`) |
 | `/misiones ajustes dificultaddiaria facil` | Dificultad de la diaria: `azar`, `facil`, `media` o `dificil` |
 | `/misiones ajustes repartirtipos no` | Dejar de repartir los tipos |
+| `/misiones ajustes variacion 30` | Variación de cantidades al azar en % (0 = exactas) |
 
 También están en el archivo `config/misiones/ajustes.json`.
 
@@ -239,7 +242,7 @@ El archivo usa el mismo formato que el catálogo (explicado abajo), así que pue
 
 ## 📄 Agregar tus propias misiones al catálogo
 
-Las misiones al azar salen del archivo **`config/misiones/misiones.json`**, dentro de tu carpeta de Minecraft. Se crea solo la primera vez que abres el juego con el mod. Si tenías la versión 1, el archivo viejo se guarda como `misiones_v1_respaldo.json`.
+Las misiones al azar salen del archivo **`config/misiones/misiones.json`**, dentro de tu carpeta de Minecraft. Se crea solo la primera vez que abres el juego con el mod. Cuando una versión nueva del mod trae un catálogo nuevo, tu archivo anterior se guarda como respaldo (`misiones_respaldo_v1.json`, `misiones_respaldo_v2.json`, etc.) y se crea el nuevo.
 
 Para abrir esa carpeta:
 - **Desde el juego (lo más fácil):** **M → Ajustes → Abrir carpeta del catálogo**.
@@ -267,7 +270,7 @@ Una línea se ve así:
 | `id` | Un nombre único, sin espacios (ej. `mi_mision_1`) |
 | `tipo` | `conseguir`, `cofre`, `minar`, `cosechar`, `matar`, `criar`, `domesticar`, `pescar`, `fabricar`, `encantar`, `pociones`, `comer`, `fundir`, `comerciar`, `equipar`, `explorar`, `viajar`, `logros`, `sobrevivir`, `nivel` o `libre` |
 | `dificultad` | `facil`, `media` o `dificil` |
-| `objetivos` | Lo que pide. Puedes poner varios separados por coma |
+| `objetivos` | Lo que pide. Puedes poner varios separados por coma. Cada uno lleva `objetivo` y `cantidad` |
 | `texto` | (opcional) Un texto extra; en las misiones `libre` es el texto de la misión |
 | `recompensas` | (opcional) Ej. `"recompensas": [{"objeto": "minecraft:diamond", "cantidad": 5}]` o `{"objeto": "xp", "cantidad": 10}` |
 
@@ -280,10 +283,15 @@ Una línea se ve así:
 | matar, criar, domesticar | Una criatura: `minecraft:zombie`, `minecraft:wolf` |
 | pociones | `minecraft:strength`, `minecraft:strong_healing`, `minecraft:long_fire_resistance`, `*` |
 | comerciar | `*` (cualquier trato), `minecraft:villager`, `minecraft:wandering_trader`, `minecraft:piglin`, o lo que recibes (`minecraft:enchanted_book`) |
-| explorar | `dimension:minecraft:the_end`, `estructura:minecraft:stronghold`, `estructura:#minecraft:village`, `bioma:minecraft:desert`, `altura:<=0`, `altura:>=200` |
+| explorar | `dimension:minecraft:the_end`, `estructura:minecraft:stronghold`, `estructura:#minecraft:village`, `bioma:minecraft:desert`, `altura:<=0`, `altura:>=200`. En estructuras, `cantidad` es cuántas **distintas** (ej. 10 aldeas diferentes) |
 | viajar | `caminar`, `elitros`, `barco`… y en `cantidad` los bloques |
 | logros | `minecraft:story/mine_diamond`, `minecraft:end/kill_dragon` |
 | sobrevivir, nivel | `dias` o `nivel`, y en `cantidad` el número |
+
+**Cantidad con rango:** en vez de un número puedes poner un rango entre comillas, por ejemplo `"cantidad": "20-50"`. Cada vez que te toque esa misión, el juego elige un número entre 20 y 50. El rango se usa siempre, aunque la elijas tú desde *Del catálogo…*:
+```json
+{"id": "aldeas_varias", "tipo": "explorar", "dificultad": "media", "objetivos": [{"objetivo": "estructura:#minecraft:village", "cantidad": "3-6"}]},
+```
 
 **Detalles entre corchetes** (para equipar, encantar, conseguir, cofre…):
 - `minecraft:diamond_sword[sharpness=5]`: espada de diamante con Filo V o más.

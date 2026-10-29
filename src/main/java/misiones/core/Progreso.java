@@ -247,13 +247,23 @@ public final class Progreso {
                     for (Objetivo o : m.objetivos) cambio |= poner(o, player.experienceLevel);
                 }
                 case SOBREVIVIR -> {
-                    if (m.diaInicio < 0) { m.diaInicio = dia(player.level()); cambio = true; }
+                    if (m.diaInicio < 0) {
+                        // Imported missions keep their days: start counting as if they began that many days ago
+                        int yaLlevaba = m.objetivos.isEmpty() ? 0 : m.objetivos.get(0).progreso;
+                        m.diaInicio = dia(player.level()) - yaLlevaba;
+                        cambio = true;
+                    }
                     for (Objetivo o : m.objetivos) cambio |= poner(o, (int) (dia(player.level()) - m.diaInicio));
                 }
                 case VIAJAR -> {
                     for (Objetivo o : m.objetivos) {
                         int valor = Viajes.valor(player, o.objetivo);
-                        if (o.base < 0) { o.base = valor; cambio = true; }
+                        if (o.base < 0) {
+                            // Imported missions keep their distance
+                            int yaLlevaba = "saltar".equals(Viajes.forma(o.objetivo)) ? o.progreso : o.progreso * 100;
+                            o.base = valor - yaLlevaba;
+                            cambio = true;
+                        }
                         cambio |= poner(o, Viajes.enBloques(o.objetivo, valor - o.base));
                     }
                 }

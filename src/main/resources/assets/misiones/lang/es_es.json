@@ -253,5 +253,21 @@
   "misiones.obj.ninguno": "ninguno",
   "misiones.obj.quitar": "Quitar todos",
   "misiones.obj.sin_adorno": "Sin adorno",
-  "misiones.obj.titulo": "Agregar a la misión: %s"
+  "misiones.obj.titulo": "Agregar a la misión: %s",
+  "misiones.menu.exportar": "Exportar…",
+  "misiones.menu.importar": "Importar…",
+  "misiones.exportar.titulo": "Exportar mis misiones",
+  "misiones.exportar.pregunta": "Se guardarán tus %s misiones en un archivo que puedes editar o compartir. Escribe el nombre y elige cómo guardarlas:",
+  "misiones.exportar.con_avance": "Con avance",
+  "misiones.exportar.desde_cero": "Desde cero (sin avance)",
+  "misiones.exportar.listo": "Guardado en %s (carpeta config/misiones)",
+  "misiones.exportar.error": "No se pudo guardar el archivo.",
+  "misiones.importar.titulo": "Importar misiones",
+  "misiones.importar.vacio": "No hay archivos exportados todavía (carpeta config/misiones/exportadas).",
+  "misiones.importar.error": "No se pudo leer ese archivo. Revisa que el formato esté bien.",
+  "misiones.importar.sin_misiones": "Ese archivo no tiene misiones válidas.",
+  "misiones.importar.pregunta": "«%s» tiene %s misiones. ¿Qué quieres hacer?",
+  "misiones.importar.agregar": "Agregarlas a mi lista",
+  "misiones.importar.reemplazar": "Reemplazar mi lista",
+  "misiones.importadas": "Se importaron %s misiones."
 }

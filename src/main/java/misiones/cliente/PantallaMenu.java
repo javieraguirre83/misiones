@@ -167,7 +167,7 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
             enviar("recompensa", d -> { d.putInt("n", n); d.putString("objeto", premio.objeto()); d.putInt("cantidad", premio.cantidad()); });
         })).active = hay;
 
-        int w2 = ancho / 3;
+        int w2 = ancho / 5;
         boton("misiones.menu.limpiar_hechas", izq, y2, w2 - 2, b -> enviar("limpiarHechas", d -> { }));
         boton(confirmarTodas ? "misiones.menu.seguro" : "misiones.menu.borrar_todas", izq + w2, y2, w2 - 2, b -> {
             if (confirmarTodas) {
@@ -177,7 +177,73 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
             confirmarTodas = !confirmarTodas;
             rebuildWidgets();
         });
-        boton("misiones.menu.ver_lista", izq + 2 * w2, y2, w2 - 2, b -> minecraft.gui.setScreen(new PantallaLista()));
+        boton("misiones.menu.exportar", izq + 2 * w2, y2, w2 - 2, b -> exportar()).active = !DatosCliente.misiones.isEmpty();
+        boton("misiones.menu.importar", izq + 3 * w2, y2, w2 - 2, b -> importar());
+        boton("misiones.menu.ver_lista", izq + 4 * w2, y2, w2 - 2, b -> minecraft.gui.setScreen(new PantallaLista()));
+    }
+
+    private void avisar(Component texto) {
+        DatosCliente.aviso = texto;
+        DatosCliente.avisoHasta = System.currentTimeMillis() + 6000;
+    }
+
+    /** Asks the file name and whether to keep the progress, then saves the list. */
+    private void exportar() {
+        List<Mision> lista = new ArrayList<>(DatosCliente.misiones);
+        minecraft.gui.setScreen(new PantallaPregunta(this, Component.translatable("misiones.exportar.titulo"),
+                Component.translatable("misiones.exportar.pregunta", lista.size()), "mis_misiones", List.of(
+                new PantallaPregunta.Opcion(Component.translatable("misiones.exportar.con_avance"), nombre -> exportarComo(lista, nombre, true)),
+                new PantallaPregunta.Opcion(Component.translatable("misiones.exportar.desde_cero"), nombre -> exportarComo(lista, nombre, false)))));
+    }
+
+    private void exportarComo(List<Mision> lista, String nombre, boolean avance) {
+        try {
+            Path archivo = Archivos.exportar(lista, nombre, avance);
+            avisar(Component.translatable("misiones.exportar.listo", "exportadas/" + archivo.getFileName()));
+        } catch (Exception e) {
+            avisar(Component.translatable("misiones.exportar.error"));
+        }
+    }
+
+    /** Picks an exported file, then asks whether to add its missions or replace the list. */
+    private void importar() {
+        List<Path> archivos = Archivos.archivos();
+        if (archivos.isEmpty()) {
+            avisar(Component.translatable("misiones.importar.vacio"));
+            return;
+        }
+        List<Listas.Entrada> opciones = new ArrayList<>();
+        for (Path a : archivos) {
+            String nombre = a.getFileName().toString();
+            opciones.add(new Listas.Entrada(a.toString(), Component.literal(nombre.substring(0, nombre.length() - 5)), Iconos.item("minecraft:writable_book")));
+        }
+        minecraft.gui.setScreen(new PantallaElegir(this, Component.translatable("misiones.importar.titulo"), opciones, e -> {
+            List<Mision> nuevas;
+            try {
+                nuevas = Archivos.leer(Path.of(e.id()));
+            } catch (Exception ex) {
+                avisar(Component.translatable("misiones.importar.error"));
+                return;
+            }
+            if (nuevas.isEmpty()) {
+                avisar(Component.translatable("misiones.importar.sin_misiones"));
+                return;
+            }
+            minecraft.gui.setScreen(new PantallaPregunta(this, Component.translatable("misiones.importar.titulo"),
+                    Component.translatable("misiones.importar.pregunta", e.nombre(), nuevas.size()), null, List.of(
+                    new PantallaPregunta.Opcion(Component.translatable("misiones.importar.agregar"), t -> enviarImportar(nuevas, false)),
+                    new PantallaPregunta.Opcion(Component.translatable("misiones.importar.reemplazar"), t -> enviarImportar(nuevas, true)))));
+        }));
+    }
+
+    private void enviarImportar(List<Mision> nuevas, boolean reemplazar) {
+        enviar("importar", d -> {
+            net.minecraft.nbt.ListTag l = new net.minecraft.nbt.ListTag();
+            for (Mision m : nuevas) l.add(m.guardar());
+            d.put("misiones", l);
+            d.putBoolean("reemplazar", reemplazar);
+        });
+        seleccion = -1;
     }
 
     /** A reward being chosen: item id or "xp", amount, and its name for the screen. */

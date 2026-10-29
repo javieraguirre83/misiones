@@ -108,6 +108,7 @@ public class Mision {
         m.texto = json.has("texto") ? json.get("texto").getAsString() : "";
         m.cadena = json.has("cadena") ? json.get("cadena").getAsString() : "";
         m.siguiente = json.has("siguiente") ? json.get("siguiente").getAsString() : "";
+        m.completada = json.has("completada") && json.get("completada").getAsBoolean();
         if (json.has("objetivos") && json.get("objetivos").isJsonArray()) {
             for (JsonElement e : json.getAsJsonArray("objetivos")) {
                 if (e.isJsonObject()) m.objetivos.add(Objetivo.deJson(e.getAsJsonObject()));
@@ -123,6 +124,11 @@ public class Mision {
     }
 
     public JsonObject aJson() {
+        return aJson(false);
+    }
+
+    /** With "avance" the progress and completed mark are saved too (exported missions). */
+    public JsonObject aJson(boolean avance) {
         JsonObject json = new JsonObject();
         json.addProperty("id", plantilla);
         json.addProperty("tipo", tipo.id);
@@ -131,8 +137,9 @@ public class Mision {
         if (!cadena.isEmpty()) json.addProperty("cadena", cadena);
         if (!siguiente.isEmpty()) json.addProperty("siguiente", siguiente);
         JsonArray objs = new JsonArray();
-        objetivos.forEach(o -> objs.add(o.aJson()));
+        objetivos.forEach(o -> objs.add(o.aJson(avance)));
         json.add("objetivos", objs);
+        if (avance && completada) json.addProperty("completada", true);
         if (!recompensas.isEmpty()) {
             JsonArray recs = new JsonArray();
             recompensas.forEach(r -> recs.add(r.aJson()));

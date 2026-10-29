@@ -174,6 +174,20 @@ public final class Acciones {
                 aviso = "misiones.recargadas";
                 args = new String[]{String.valueOf(Catalogo.cargar())};
             }
+            case "importar" -> {
+                List<Mision> nuevas = new ArrayList<>();
+                for (net.minecraft.nbt.Tag t : d.getListOrEmpty("misiones")) {
+                    if (t instanceof CompoundTag c && nuevas.size() < 500) nuevas.add(Mision.cargar(c));
+                }
+                if (d.getBooleanOr("reemplazar", false)) {
+                    lista.clear();
+                    Datos.guardarEspera(player, new ArrayList<>());
+                }
+                lista.addAll(nuevas);
+                Datos.guardar(player, lista);
+                aviso = "misiones.importadas";
+                args = new String[]{String.valueOf(nuevas.size())};
+            }
             case "listas" -> {
                 enviarListas(player);
                 return;

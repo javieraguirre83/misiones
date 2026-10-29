@@ -51,13 +51,21 @@ public class Objetivo {
     public static Objetivo deJson(JsonObject json) {
         String id = json.has("objetivo") ? json.get("objetivo").getAsString() : "";
         int cantidad = json.has("cantidad") ? json.get("cantidad").getAsInt() : 1;
-        return new Objetivo(id, cantidad);
+        Objetivo o = new Objetivo(id, cantidad);
+        if (json.has("progreso")) o.progreso = Math.max(0, Math.min(cantidad, json.get("progreso").getAsInt()));
+        return o;
     }
 
     public JsonObject aJson() {
+        return aJson(false);
+    }
+
+    /** With "avance" the progress is saved too (exported missions). */
+    public JsonObject aJson(boolean avance) {
         JsonObject json = new JsonObject();
         json.addProperty("objetivo", objetivo);
         json.addProperty("cantidad", cantidad);
+        if (avance && progreso > 0) json.addProperty("progreso", progreso);
         return json;
     }
 }

@@ -25,7 +25,7 @@ public class Objetivo {
     /** Catalog range like "20-50" (empty = fixed amount). The real amount is chosen when the mission is given. */
     public String rango = "";
     /** Structures already visited (EXPLORAR with an amount: "visit 10 different villages"). */
-    public final List<Long> visitados = new ArrayList<>();
+    public final List<String> visitados = new ArrayList<>();
 
     public Objetivo(String objetivo, int cantidad) {
         this.objetivo = objetivo == null ? "" : objetivo;
@@ -91,8 +91,8 @@ public class Objetivo {
         if (!rango.isEmpty()) tag.putString("rango", rango);
         if (!visitados.isEmpty()) {
             StringBuilder sb = new StringBuilder();
-            for (Long v : visitados) {
-                if (sb.length() > 0) sb.append(',');
+            for (String v : visitados) {
+                if (sb.length() > 0) sb.append(';');
                 sb.append(v);
             }
             tag.putString("visitados", sb.toString());
@@ -107,8 +107,8 @@ public class Objetivo {
         o.rango = tag.getStringOr("rango", "");
         String v = tag.getStringOr("visitados", "");
         if (!v.isEmpty()) {
-            for (String parte : v.split(",")) {
-                try { o.visitados.add(Long.parseLong(parte.trim())); } catch (NumberFormatException ignored) { }
+            for (String parte : v.split(";")) {
+                if (!parte.isBlank()) o.visitados.add(parte.trim());
             }
         }
         return o;

@@ -50,7 +50,7 @@ public final class Progreso {
      * The structure the player is standing in, as a number unique to that structure
      * (its starting chunk), or null if they are not inside one of the asked kind.
      */
-    public static Long estructuraAqui(String objetivo, ServerPlayer player) {
+    public static String estructuraAqui(String objetivo, ServerPlayer player) {
         String o = objetivo.trim().toLowerCase(Locale.ROOT);
         if (!o.startsWith("estructura:")) return null;
         try {
@@ -66,7 +66,7 @@ public final class Progreso {
                 inicio = level.structureManager().getStructureWithPieceAt(pos, (Holder<Structure> h) -> h.is(key));
             }
             if (inicio == null || !inicio.isValid()) return null;
-            return inicio.getChunkPos().toLong();
+            return level.dimension().identifier() + "@" + inicio.getChunkPos();
         } catch (Exception ex) {
             return null;
         }
@@ -263,7 +263,7 @@ public final class Progreso {
                 case EXPLORAR -> {
                     for (Objetivo o : m.objetivos) {
                         if (o.cumplido()) continue;
-                        Long estructura = Progreso.estructuraAqui(o.objetivo, player);
+                        String estructura = Progreso.estructuraAqui(o.objetivo, player);
                         if (estructura != null) {
                             // Structures count one by one: each different one (e.g. a new village) adds 1
                             if (!o.visitados.contains(estructura)) {

@@ -25,6 +25,8 @@ public final class DatosCliente {
     /** Goes up every time new data arrives, so screens know when to rebuild. */
     public static int version = 0;
 
+    /** The catalog missions (to pick one in the Add tab). */
+    public static List<Mision> plantillas = new ArrayList<>();
     public static List<String> estructuras = new ArrayList<>();
     public static List<String> logros = new ArrayList<>();
     public static List<String> dimensiones = new ArrayList<>(List.of("minecraft:overworld", "minecraft:the_nether", "minecraft:the_end"));
@@ -42,6 +44,9 @@ public final class DatosCliente {
             logros = leerLista(p.datos().getCompoundOrEmpty("logros"));
             List<String> dims = leerLista(p.datos().getCompoundOrEmpty("dimensiones"));
             if (!dims.isEmpty()) dimensiones = dims;
+            List<Mision> cat = new ArrayList<>();
+            for (Tag t : p.datos().getListOrEmpty("catalogo")) if (t instanceof CompoundTag c) cat.add(Mision.cargar(c));
+            plantillas = cat;
             return;
         }
         if (!p.accion().equals("estado")) return;

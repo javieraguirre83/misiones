@@ -97,6 +97,19 @@ public final class Listas {
         return r;
     }
 
+    /** Smithing trim patterns (for armor that must have a trim). */
+    public static List<Entrada> adornos() {
+        List<Entrada> r = new ArrayList<>();
+        var mc = Minecraft.getInstance();
+        if (mc.level == null) return r;
+        mc.level.registryAccess().lookupOrThrow(Registries.TRIM_PATTERN).listElementIds().forEach(k -> {
+            Identifier i = k.identifier();
+            r.add(new Entrada(i.toString(), Component.translatableWithFallback("trim_pattern." + i.getNamespace() + "." + i.getPath(), Cosas.bonito(i.getPath())),
+                    Iconos.item(i.getNamespace() + ":" + i.getPath() + "_armor_trim_smithing_template")));
+        });
+        return r;
+    }
+
     public static List<Entrada> biomas() {
         List<Entrada> r = new ArrayList<>();
         var mc = Minecraft.getInstance();

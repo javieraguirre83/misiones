@@ -160,6 +160,24 @@ public final class Progreso {
         return texto;
     }
 
+    /** Name of one objective without counts (for the menu): "Botas de diamante (Caída de pluma IV)". */
+    public static MutableComponent nombreObjetivo(Tipo tipo, String objetivo, String texto) {
+        return switch (tipo) {
+            case CONSEGUIR, COFRE, FABRICAR, PESCAR, COMER, FUNDIR, ENCANTAR, EQUIPAR -> Cosas.nombreObjeto(objetivo);
+            case MINAR, COSECHAR -> Cosas.nombreBloque(objetivo);
+            case MATAR, CRIAR, DOMESTICAR -> Cosas.nombreMob(objetivo);
+            case COMERCIAR -> Cosas.leer(objetivo).cualquiera() ? Component.translatable("misiones.cualquier.trato")
+                    : Cosas.esMob(objetivo) ? Cosas.nombreMob(objetivo) : Cosas.nombreObjeto(objetivo);
+            case POCIONES -> Cosas.nombrePocion(objetivo);
+            case VIAJAR -> Component.translatable("misiones.menu.viaje." + Viajes.forma(objetivo));
+            case LOGROS -> Cosas.nombreLogro(objetivo).copy();
+            case EXPLORAR -> nombreLugar(objetivo).copy();
+            case SOBREVIVIR -> Component.translatable("misiones.menu.dias");
+            case NIVEL -> Component.translatable("misiones.menu.nivel");
+            case LIBRE -> Component.literal(texto);
+        };
+    }
+
     public static MutableComponent linea(int numero, Mision m) {
         MutableComponent linea = Component.literal("#" + numero + " ").withStyle(ChatFormatting.GOLD);
         if (m.diaria) linea.append(Component.literal("📅 ").withStyle(ChatFormatting.AQUA));

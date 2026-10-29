@@ -77,24 +77,56 @@ public final class Acciones {
                     args = new String[]{String.valueOf(r[0])};
                 }
             }
-            case "agregar" -> {
+            case "agregar", "editar" -> {
                 Tipo tipo = Tipo.leer(d.getStringOr("tipo", ""));
-                if (tipo != null) {
+                boolean editar = p.accion().equals("editar");
+                if (tipo != null && (!editar || m != null)) {
                     Mision nueva = new Mision();
+                    nueva.plantilla = d.getStringOr("plantilla", "");
                     nueva.tipo = tipo;
                     nueva.dificultad = Dificultad.leer(d.getStringOr("dificultad", "media"), Dificultad.MEDIA);
-                    String objetivo = d.getStringOr("objetivo", "*");
-                    if (tipo == Tipo.VIAJAR) objetivo = Viajes.forma(objetivo);
-                    if (tipo == Tipo.LIBRE) {
-                        nueva.texto = d.getStringOr("texto", "");
-                        objetivo = "libre";
+                    if (tipo == Tipo.LIBRE) nueva.texto = d.getStringOr("texto", "");
+                    // Several things at once (new menu) or a single one (old style)
+                    List<CompoundTag> cosas = new ArrayList<>();
+                    for (net.minecraft.nbt.Tag t : d.getListOrEmpty("objetivos")) if (t instanceof CompoundTag c) cosas.add(c);
+                    if (cosas.isEmpty()) cosas.add(d);
+                    for (CompoundTag c : cosas) {
+                        String objetivo = c.getStringOr("objetivo", "*");
+                        if (tipo == Tipo.VIAJAR) objetivo = Viajes.forma(objetivo);
+                        if (tipo == Tipo.LIBRE) objetivo = "libre";
+                        if (tipo == Tipo.SOBREVIVIR) objetivo = "dias";
+                        if (tipo == Tipo.NIVEL) objetivo = "nivel";
+                        nueva.objetivos.add(new Objetivo(objetivo, Math.max(1, c.getIntOr("cantidad", 1))));
+                        if (!tipo.multiple) break;
                     }
-                    if (tipo == Tipo.SOBREVIVIR) objetivo = "dias";
-                    if (tipo == Tipo.NIVEL) objetivo = "nivel";
-                    nueva.objetivos.add(new Objetivo(objetivo, Math.max(1, d.getIntOr("cantidad", 1))));
-                    lista.add(nueva);
+                    for (net.minecraft.nbt.Tag t : d.getListOrEmpty("recompensas")) {
+                        if (t instanceof CompoundTag c) nueva.recompensas.add(new Recompensa(c.getStringOr("objeto", "xp"), Math.max(1, c.getIntOr("cantidad", 1))));
+                    }
+                    if (editar) {
+                        // Keep the progress of things that did not change; keep chain / daily marks
+                        for (int i = 0; i < nueva.objetivos.size() && i < m.objetivos.size(); i++) {
+                            Objetivo antes = m.objetivos.get(i), ahora = nueva.objetivos.get(i);
+                            if (nueva.tipo == m.tipo && antes.objetivo.equals(ahora.objetivo)) {
+                                ahora.progreso = Math.min(antes.progreso, ahora.cantidad);
+                                ahora.base = antes.base;
+                            }
+                        }
+                        if (nueva.plantilla.isEmpty()) nueva.plantilla = m.plantilla;
+                        nueva.cadena = m.cadena;
+                        nueva.siguiente = m.siguiente;
+                        nueva.diaria = m.diaria;
+                        nueva.diaInicio = nueva.tipo == m.tipo ? m.diaInicio : -1;
+                        lista.set(n - 1, nueva);
+                        aviso = "misiones.editada";
+                    } else {
+                        if (!nueva.plantilla.isEmpty()) {
+                            Mision plantilla = Catalogo.buscar(nueva.plantilla);
+                            if (plantilla != null) { nueva.cadena = plantilla.cadena; nueva.siguiente = plantilla.siguiente; }
+                        }
+                        lista.add(nueva);
+                        aviso = "misiones.agregada.simple";
+                    }
                     Datos.guardar(player, lista);
-                    aviso = "misiones.agregada.simple";
                 }
             }
             case "encantamiento", "adorno" -> {
@@ -213,6 +245,9 @@ public final class Acciones {
         poner(d, "estructuras", estructuras);
         poner(d, "logros", logros);
         poner(d, "dimensiones", dimensiones);
+        ListTag catalogo = new ListTag();
+        for (Mision plantilla : Catalogo.plantillas()) catalogo.add(plantilla.guardar());
+        d.put("catalogo", catalogo);
         Red.alJugador(player, new Paquete(d));
     }
 

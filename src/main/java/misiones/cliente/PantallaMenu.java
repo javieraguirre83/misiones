@@ -44,13 +44,15 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
     // Generate
     private String totalTxt = "5", facilTxt = "3", mediaTxt = "2", dificilTxt = "0";
 
-    // Add
+    // Add (a mission being built, or an existing one being edited)
     private static Tipo tipo = Tipo.CONSEGUIR;
-    private static String clase = "estructura";
     private static Dificultad dificultad = Dificultad.MEDIA;
-    private Listas.Entrada elegido = null;
-    private String cantidadTxt = "1";
+    private final List<PantallaObjetivo.Cosa> cosas = new ArrayList<>();
+    private final List<Premio> premios = new ArrayList<>();
     private String textoLibre = "";
+    private String plantilla = "";
+    /** Number of the mission being edited, or -1 for a new one. */
+    private int editando = -1;
 
     // Chains
     private int cadenaSel = 0;
@@ -150,18 +152,20 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
 
     private void initMisiones() {
         int ancho = der - izq;
-        int w = ancho / 5;
+        int w = ancho / 4;
         boolean hay = seleccion >= 0 && seleccion < DatosCliente.misiones.size();
         int y1 = height - 56, y2 = height - 33;
         boton("misiones.menu.completar", izq, y1, w - 2, b -> enviar("completar", d -> d.putInt("n", seleccion + 1))).active = hay;
-        boton("misiones.menu.borrar", izq + w, y1, w - 2, b -> {
+        boton("misiones.menu.editar", izq + w, y1, w - 2, b -> editar(seleccion)).active = hay;
+        boton("misiones.menu.borrar", izq + 2 * w, y1, w - 2, b -> {
             enviar("borrar", d -> d.putInt("n", seleccion + 1));
             seleccion = -1;
             rebuildWidgets();
         }).active = hay;
-        boton("misiones.menu.premio", izq + 2 * w, y1, w - 2, b -> elegirPremio()).active = hay;
-        boton("misiones.menu.encantamiento", izq + 3 * w, y1, w - 2, b -> elegirEncantamiento()).active = hay;
-        boton("misiones.menu.adorno", izq + 4 * w, y1, w - 2, b -> enviar("adorno", d -> d.putInt("n", seleccion + 1))).active = hay;
+        boton("misiones.menu.dar_premio", izq + 3 * w, y1, w - 2, b -> elegirPremio(premio -> {
+            int n = seleccion + 1;
+            enviar("recompensa", d -> { d.putInt("n", n); d.putString("objeto", premio.objeto()); d.putInt("cantidad", premio.cantidad()); });
+        })).active = hay;
 
         int w2 = ancho / 3;
         boton("misiones.menu.limpiar_hechas", izq, y2, w2 - 2, b -> enviar("limpiarHechas", d -> { }));
@@ -176,23 +180,19 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
         boton("misiones.menu.ver_lista", izq + 2 * w2, y2, w2 - 2, b -> minecraft.gui.setScreen(new PantallaLista()));
     }
 
-    private void elegirPremio() {
-        int n = seleccion + 1;
+    /** A reward being chosen: item id or "xp", amount, and its name for the screen. */
+    private record Premio(String objeto, int cantidad, Component nombre) {}
+
+    /** Picks a reward (XP or an item) and its amount. */
+    private void elegirPremio(Consumer<Premio> alElegir) {
         List<Listas.Entrada> opciones = new ArrayList<>();
         opciones.add(new Listas.Entrada("xp", Component.translatable("misiones.menu.xp"), Iconos.item("minecraft:experience_bottle")));
         opciones.addAll(Listas.objetos());
         minecraft.gui.setScreen(new PantallaElegir(this, Component.translatable("misiones.menu.elegir_premio"), opciones, e ->
-                minecraft.gui.setScreen(new PantallaCantidad(this, Component.translatable("misiones.menu.premio"),
+                minecraft.gui.setScreen(new PantallaCantidad(this, e.nombre().copy(),
                         e.id().equals("xp") ? Component.translatable("misiones.menu.cuantos_niveles") : Component.translatable("misiones.menu.cuantos"), 1,
-                        c -> enviar("recompensa", d -> { d.putInt("n", n); d.putString("objeto", e.id()); d.putInt("cantidad", c); })))));
-    }
-
-    private void elegirEncantamiento() {
-        int n = seleccion + 1;
-        minecraft.gui.setScreen(new PantallaElegir(this, Component.translatable("misiones.menu.elegir_encantamiento"), Listas.encantamientos(), e ->
-                minecraft.gui.setScreen(new PantallaCantidad(this, Component.translatable("misiones.menu.encantamiento"),
-                        Component.translatable("misiones.menu.nivel_minimo"), 1,
-                        c -> enviar("encantamiento", d -> { d.putInt("n", n); d.putString("encantamiento", e.id()); d.putInt("nivel", c); })))));
+                        c -> alElegir.accept(new Premio(e.id(), c, e.id().equals("xp")
+                                ? Component.translatable("misiones.recompensa.xp", c) : Component.literal(c + " ").append(e.nombre())))))));
     }
 
     private int maxScroll() {
@@ -273,110 +273,192 @@ public class PantallaMenu extends Screen implements DatosCliente.Actualizable {
 
     // ---------- tab: add ----------
 
-    private boolean necesitaElegir() {
-        if (tipo == Tipo.SOBREVIVIR || tipo == Tipo.NIVEL || tipo == Tipo.LIBRE) return false;
-        return tipo != Tipo.EXPLORAR || !clase.startsWith("altura");
+    private void limpiarBorrador() {
+        cosas.clear();
+        premios.clear();
+        textoLibre = "";
+        plantilla = "";
+        editando = -1;
     }
 
-    private boolean necesitaNumero() {
-        if (tipo == Tipo.LOGROS || tipo == Tipo.LIBRE) return false;
-        return tipo != Tipo.EXPLORAR || clase.startsWith("altura");
-    }
-
-    private String etiquetaNumero() {
-        return switch (tipo) {
-            case VIAJAR -> elegido != null && elegido.id().equals("saltar") ? "misiones.menu.saltos" : "misiones.menu.bloques";
-            case SOBREVIVIR -> "misiones.menu.dias";
-            case NIVEL -> "misiones.menu.nivel";
-            case EXPLORAR -> "misiones.menu.altura_y";
-            default -> "misiones.menu.cantidad";
-        };
-    }
-
-    private List<Listas.Entrada> opciones() {
-        List<Listas.Entrada> r = new ArrayList<>();
-        switch (tipo) {
-            case CONSEGUIR, COFRE, FABRICAR, PESCAR, COMER, FUNDIR, ENCANTAR, EQUIPAR -> { r.add(Listas.cualquiera()); r.addAll(Listas.objetos()); }
-            case COMERCIAR -> { r.add(Listas.cualquiera()); r.addAll(Listas.comerciantes()); r.addAll(Listas.objetos()); }
-            case MINAR, COSECHAR -> { r.add(Listas.cualquiera()); r.addAll(Listas.bloques()); }
-            case MATAR, CRIAR, DOMESTICAR -> { r.add(Listas.cualquiera()); r.addAll(Listas.mobs()); }
-            case POCIONES -> { r.add(Listas.cualquiera()); r.addAll(Listas.pociones()); }
-            case EXPLORAR -> r.addAll(switch (clase) {
-                case "dimension" -> Listas.dimensiones();
-                case "bioma" -> Listas.biomas();
-                default -> Listas.estructuras();
-            });
-            case VIAJAR -> r.addAll(Listas.viajes());
-            case LOGROS -> r.addAll(Listas.logros());
-            default -> { }
+    /** Loads a mission (mine or from the catalog) into the Add tab. */
+    private void cargarBorrador(Mision m, int numero) {
+        limpiarBorrador();
+        tipo = m.tipo;
+        dificultad = m.dificultad;
+        textoLibre = m.texto;
+        plantilla = m.plantilla;
+        editando = numero;
+        if (m.tipo != Tipo.LIBRE) {
+            for (misiones.modelo.Objetivo o : m.objetivos) {
+                Mision una = new Mision();
+                una.tipo = m.tipo;
+                una.objetivos.add(o.copia());
+                cosas.add(new PantallaObjetivo.Cosa(o.objetivo, o.cantidad, Progreso.nombreObjetivo(m.tipo, o.objetivo, m.texto), Iconos.de(una)));
+            }
         }
-        return r;
+        for (misiones.modelo.Recompensa r : m.recompensas) {
+            premios.add(new Premio(r.objeto, r.cantidad, r.esXp() ? Component.translatable("misiones.recompensa.xp", r.cantidad)
+                    : Component.literal(r.cantidad + " ").append(misiones.core.Cosas.nombreObjeto(r.objeto))));
+        }
+    }
+
+    private void editar(int indice) {
+        if (indice < 0 || indice >= DatosCliente.misiones.size()) return;
+        cargarBorrador(DatosCliente.misiones.get(indice), indice + 1);
+        pestana = Pestana.AGREGAR;
+        rebuildWidgets();
+    }
+
+    private int yCosas() {
+        return fila(2) - 2;
+    }
+
+    private int yPremios() {
+        return height - 82;
+    }
+
+    private int maxFilasCosas() {
+        return Math.max(1, (yPremios() - 4 - yCosas()) / 18);
     }
 
     private void initAgregar() {
-        int x = izq + 100, w = Math.min(220, der - x);
+        int xTipo = izq + 50, wTipo = 150;
         addRenderableWidget(CycleButton.builder((Tipo t) -> Component.translatable("misiones.menu.tipo." + t.id), tipo)
-                .withValues(List.of(Tipo.values()))
-                .create(x, fila(0), w, 20, Component.translatable("misiones.menu.tipo"), (b, v) -> {
+                .withValues(List.of(Tipo.values())).displayOnlyValue()
+                .create(xTipo, fila(0), wTipo, 20, Component.translatable("misiones.menu.tipo"), (b, v) -> {
+                    if (v != tipo) cosas.clear();
                     tipo = v;
-                    elegido = null;
                     rebuildWidgets();
                 }));
-        if (tipo == Tipo.EXPLORAR) {
-            addRenderableWidget(CycleButton.builder((String c) -> Component.translatable("misiones.menu.clase." + c), clase)
-                    .withValues(List.of("estructura", "bioma", "dimension", "altura_abajo", "altura_arriba"))
-                    .create(x, fila(1), w, 20, Component.translatable("misiones.menu.clase"), (b, v) -> {
-                        clase = v;
-                        elegido = null;
-                        rebuildWidgets();
-                    }));
-        }
-        if (necesitaElegir()) {
-            Component texto = elegido == null ? Component.translatable("misiones.menu.elegir") : elegido.nombre();
-            addRenderableWidget(Button.builder(texto, b -> minecraft.gui.setScreen(new PantallaElegir(this,
-                    Component.translatable("misiones.menu.tipo." + tipo.id), opciones(), e -> { elegido = e; rebuildWidgets(); })))
-                    .bounds(x, fila(2), w, 20).build());
-        }
-        if (necesitaNumero()) campo(x, fila(3), 80, cantidadTxt, s -> cantidadTxt = s);
-        if (tipo == Tipo.LIBRE) {
-            EditBox e = campo(x, fila(3), Math.min(260, der - x), textoLibre, s -> textoLibre = s);
-            e.setMaxLength(200);
-        }
+        int xDif = xTipo + wTipo + 70;
         addRenderableWidget(CycleButton.builder((Dificultad d) -> Component.translatable(d.clave()), dificultad)
-                .withValues(List.of(Dificultad.values()))
-                .create(x, fila(4), w, 20, Component.translatable("misiones.menu.dificultad"), (b, v) -> dificultad = v));
-        Button agregar = boton("misiones.menu.agregar", x, fila(5) + 4, w, b -> agregar());
-        agregar.active = !necesitaElegir() || elegido != null;
+                .withValues(List.of(Dificultad.values())).displayOnlyValue()
+                .create(xDif, fila(0), Math.max(60, der - xDif), 20, Component.translatable("misiones.menu.dificultad"), (b, v) -> dificultad = v));
+
+        if (tipo == Tipo.LIBRE) {
+            EditBox e = campo(izq + 50, fila(1), der - izq - 50, textoLibre, s2 -> { textoLibre = s2; });
+            e.setMaxLength(200);
+        } else {
+            Button mas = boton("misiones.menu.mas_cosa", der - 130, fila(1), 130, b ->
+                    minecraft.gui.setScreen(new PantallaObjetivo(this, tipo, c -> { cosas.add(c); rebuildWidgets(); })));
+            mas.active = tipo.multiple || cosas.isEmpty();
+            int filas = Math.min(cosas.size(), maxFilasCosas());
+            for (int i = 0; i < filas; i++) {
+                int idx = i;
+                addRenderableWidget(Button.builder(Component.literal("✕"), b -> { cosas.remove(idx); rebuildWidgets(); })
+                        .bounds(der - 18, yCosas() + i * 18, 18, 16).build());
+            }
+        }
+
+        boton("misiones.menu.mas_premio", der - 150, yPremios(), 80, b -> elegirPremio(p -> { premios.add(p); rebuildWidgets(); }));
+        boton("misiones.menu.quitar", der - 68, yPremios(), 68, b -> { premios.clear(); rebuildWidgets(); }).active = !premios.isEmpty();
+
+        int w = (der - izq) / 3;
+        Button crear = boton(editando > 0 ? "misiones.menu.guardar_cambios" : "misiones.menu.crear", izq, height - 56, w - 2, b -> crear());
+        crear.active = tipo == Tipo.LIBRE ? !textoLibre.isBlank() : !cosas.isEmpty();
+        boton("misiones.menu.del_catalogo", izq + w, height - 56, w - 2, b -> elegirDelCatalogo());
+        boton("misiones.menu.nuevo", izq + 2 * w, height - 56, w - 2, b -> { limpiarBorrador(); rebuildWidgets(); });
     }
 
-    private void agregar() {
-        int n = numero(cantidadTxt, 1);
-        enviar("agregar", d -> {
+    private void elegirDelCatalogo() {
+        List<Listas.Entrada> opciones = new ArrayList<>();
+        for (Mision m : DatosCliente.plantillas) {
+            MutableComponent nombre = Component.literal("[").append(Component.translatable(m.dificultad.clave())).append("] ").withStyle(m.dificultad.color);
+            if (!m.cadena.isEmpty()) nombre.append(Component.literal("⛓" + m.cadena + " ").withStyle(ChatFormatting.LIGHT_PURPLE));
+            nombre.append(Progreso.descripcion(m, false).withStyle(ChatFormatting.WHITE));
+            opciones.add(new Listas.Entrada(m.plantilla, nombre, Iconos.de(m)));
+        }
+        minecraft.gui.setScreen(new PantallaElegir(this, Component.translatable("misiones.menu.elegir_catalogo"), opciones, e -> {
+            for (Mision m : DatosCliente.plantillas) {
+                if (m.plantilla.equals(e.id())) {
+                    cargarBorrador(m, -1);
+                    break;
+                }
+            }
+            rebuildWidgets();
+        }));
+    }
+
+    private void crear() {
+        boolean edicion = editando > 0;
+        int numero = editando;
+        enviar(edicion ? "editar" : "agregar", d -> {
+            if (edicion) d.putInt("n", numero);
             d.putString("tipo", tipo.id);
             d.putString("dificultad", dificultad.id);
-            String objetivo = elegido == null ? "*" : elegido.id();
-            int cantidad = Math.max(1, n);
-            if (tipo == Tipo.EXPLORAR) {
-                cantidad = 1;
-                if (clase.equals("altura_abajo")) objetivo = "altura:<=" + n;
-                if (clase.equals("altura_arriba")) objetivo = "altura:>=" + n;
+            d.putString("plantilla", plantilla);
+            if (tipo == Tipo.LIBRE) d.putString("texto", textoLibre);
+            net.minecraft.nbt.ListTag objs = new net.minecraft.nbt.ListTag();
+            if (tipo == Tipo.LIBRE) {
+                CompoundTag c = new CompoundTag();
+                c.putString("objetivo", "libre");
+                c.putInt("cantidad", 1);
+                objs.add(c);
             }
-            if (tipo == Tipo.LOGROS) cantidad = 1;
-            if (tipo == Tipo.LIBRE) d.putString("texto", textoLibre.isBlank() ? "?" : textoLibre);
-            d.putString("objetivo", objetivo);
-            d.putInt("cantidad", cantidad);
+            for (PantallaObjetivo.Cosa cosa : cosas) {
+                CompoundTag c = new CompoundTag();
+                c.putString("objetivo", cosa.objetivo());
+                c.putInt("cantidad", cosa.cantidad());
+                objs.add(c);
+            }
+            d.put("objetivos", objs);
+            net.minecraft.nbt.ListTag recs = new net.minecraft.nbt.ListTag();
+            for (Premio pr : premios) {
+                CompoundTag c = new CompoundTag();
+                c.putString("objeto", pr.objeto());
+                c.putInt("cantidad", pr.cantidad());
+                recs.add(c);
+            }
+            d.put("recompensas", recs);
         });
+        limpiarBorrador();
+        if (edicion) pestana = Pestana.MISIONES;
+        rebuildWidgets();
     }
 
     private void dibujarAgregar(GuiGraphicsExtractor g) {
         g.text(font, Component.translatable("misiones.menu.tipo"), izq, fila(0) + 6, 0xFFFFFFFF);
-        if (tipo == Tipo.EXPLORAR) g.text(font, Component.translatable("misiones.menu.clase"), izq, fila(1) + 6, 0xFFFFFFFF);
-        if (necesitaElegir()) g.text(font, Component.translatable("misiones.menu.que"), izq, fila(2) + 6, 0xFFFFFFFF);
-        if (necesitaNumero()) g.text(font, Component.translatable(etiquetaNumero()), izq, fila(3) + 6, 0xFFFFFFFF);
-        if (tipo == Tipo.LIBRE) g.text(font, Component.translatable("misiones.menu.texto"), izq, fila(3) + 6, 0xFFFFFFFF);
-        g.text(font, Component.translatable("misiones.menu.dificultad"), izq, fila(4) + 6, 0xFFFFFFFF);
-        g.textWithWordWrap(font, Component.translatable("misiones.menu.ayuda." + tipo.id).withStyle(ChatFormatting.GRAY),
-                izq, fila(6) + 6, der - izq, 0xFFAAAAAA);
+        g.text(font, Component.translatable("misiones.menu.dificultad"), izq + 50 + 150 + 6, fila(0) + 6, 0xFFFFFFFF);
+        if (editando > 0) {
+            Component aviso = Component.translatable("misiones.menu.editando", editando).withStyle(ChatFormatting.GOLD);
+            g.text(font, aviso, izq + 100, fila(1) + 6, -1);
+        }
+
+        if (tipo == Tipo.LIBRE) {
+            g.text(font, Component.translatable("misiones.menu.texto"), izq, fila(1) + 6, 0xFFFFFFFF);
+        } else {
+            g.text(font, Component.translatable("misiones.menu.que_pide"), izq, fila(1) + 6, 0xFFFFFFFF);
+            int y = yCosas();
+            g.fill(izq, y - 2, der, yPremios() - 4, 0x55000000);
+            if (cosas.isEmpty()) {
+                g.text(font, Component.translatable("misiones.menu.sin_cosas").withStyle(ChatFormatting.GRAY), izq + 4, y + 4, -1);
+            }
+            int filas = Math.min(cosas.size(), maxFilasCosas());
+            for (int i = 0; i < filas; i++) {
+                PantallaObjetivo.Cosa c = cosas.get(i);
+                int yy = y + i * 18;
+                if (!c.icono().isEmpty()) g.item(c.icono(), izq + 2, yy);
+                MutableComponent t = Component.empty();
+                if (tipo != Tipo.EXPLORAR && tipo != Tipo.LOGROS) t.append(Component.literal(c.cantidad() + " × ").withStyle(ChatFormatting.GOLD));
+                t.append(c.nombre());
+                List<FormattedCharSequence> partes = font.split(t, der - izq - 46);
+                if (!partes.isEmpty()) g.text(font, partes.get(0), izq + 22, yy + 4, 0xFFFFFFFF);
+            }
+            if (cosas.size() > filas) {
+                g.text(font, Component.translatable("misiones.menu.y_mas", cosas.size() - filas).withStyle(ChatFormatting.GRAY), izq + 22, y + filas * 18 + 2, -1);
+            }
+        }
+
+        MutableComponent textoPremios = Component.empty();
+        if (premios.isEmpty()) textoPremios.append(Component.translatable("misiones.obj.ninguno").withStyle(ChatFormatting.GRAY));
+        for (int i = 0; i < premios.size(); i++) {
+            if (i > 0) textoPremios.append(", ");
+            textoPremios.append(premios.get(i).nombre().copy().withStyle(ChatFormatting.AQUA));
+        }
+        MutableComponent filaPremios = Component.translatable("misiones.menu.premios").append(" ").append(textoPremios);
+        List<FormattedCharSequence> partes = font.split(filaPremios, der - izq - 156);
+        if (!partes.isEmpty()) g.text(font, partes.get(0), izq, yPremios() + 6, 0xFFFFFFFF);
     }
 
     // ---------- tab: chains ----------

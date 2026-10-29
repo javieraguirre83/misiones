@@ -10,7 +10,7 @@ Generador de misiones para darle un **objetivo** a cada partida: desde "consigue
 
 ## ⬇️ Descargar
 
-**[Descargar el mod (.jar)](https://github.com/javieraguirre83/misiones/releases/download/ultima/Misiones-2.3.0-forge-26.2.jar)**
+**[Descargar el mod (.jar)](https://github.com/javieraguirre83/misiones/releases/download/ultima/Misiones-2.4.0-forge-26.2.jar)**
 
 1. Descarga el archivo `.jar` (si tenías una versión anterior, borra el `.jar` viejo de la carpeta `mods`).
 2. Abre la carpeta `mods`:
